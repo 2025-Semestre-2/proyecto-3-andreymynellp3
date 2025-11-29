@@ -8,7 +8,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>24</maven.compiler.release>
-        <exec.mainClass>com.mycompany.file_system.File_System</exec.mainClass>
+        <exec.mainClass>mvc.Main</exec.mainClass>
     </properties>
     <name>FileSystem</name>
 </project>

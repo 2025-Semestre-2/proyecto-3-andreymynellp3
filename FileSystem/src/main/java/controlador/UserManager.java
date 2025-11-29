@@ -16,7 +16,10 @@ public class UserManager {
     public UserManager(){
     
         users = new HashMap<>();
-        currentUser = "guest";
+        
+        users.put("root", new User("root","Super root","rootpass",0,0));
+        
+        currentUser = "root";
         
     }
     public void useradd (String name,String username, String password){
@@ -31,11 +34,27 @@ public class UserManager {
         users.get(username).setPassword(password);
    
     }
+    public boolean changeUser (String username,String password){ 
+        if(!userExists(username)){
+            return false;
+        }
+        String storepass = users.get(username).getPassword();
+        if(storepass.equals(password)){
+            su(username);
+            return true;
+        }
+        return false;
+    }
+    public String whoami(){
+        String msj = "username: "+getCurrentUser()+"\n";
+        msj += "Full name: "+ users.get(getCurrentUser()).getFullname();
+        return msj;
+    }
     public boolean userExists (String username){
         return (users.containsKey(username));
     }
     public void logout(){
-        currentUser = "guest";
+        currentUser = "root";
     }
     public String getCurrentUser(){
         return currentUser;
@@ -46,7 +65,7 @@ public class UserManager {
     }
     
     public boolean isLogget(){
-        return currentUser.equals("guest");
+        return currentUser.equals("root");
     }
     
 }
