@@ -3,16 +3,15 @@ package controlador;
 
 import static controlador.Command.*;
 import java.util.Scanner;
-import modelo.FileSystem;
+import controlador.FileSystem;
 
 
 public class Controller {
     private FileSystem fs;
-   
     private Command cm;
     
     public Controller(){
-        this.fs = new FileSystem();
+        this.fs = new FileSystem(4050,"Link");
         this.cm = new Command();
     }
     
