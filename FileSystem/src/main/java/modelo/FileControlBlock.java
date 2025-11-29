@@ -1,5 +1,7 @@
 package modelo;
 
+import modelo.acceso.Protection;
+
 public class FileControlBlock {
     private int index;
     private String name;

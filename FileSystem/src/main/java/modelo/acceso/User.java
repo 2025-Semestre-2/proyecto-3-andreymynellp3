@@ -1,5 +1,5 @@
 
-package modelo;
+package modelo.acceso;
 
 public class User {
     private String username;
