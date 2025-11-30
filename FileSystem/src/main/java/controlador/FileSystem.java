@@ -55,13 +55,15 @@ public class FileSystem {
     }
     
     //PENDIENTE
-    public int createFile(String name, ArrayList<String> data){
+    public int createFile(String name, ArrayList<Byte> data){
         idCount++;
         int temp = Integer.parseInt("2"+idCount.toString());
         directories.get(nowDirectory).setChild(temp);
         Integer index = superblock.getNumblocks()-superblock.getFreeblocks();
         FileControlBlock n = new FileControlBlock(temp,name,0,0,index);
-        
+        for(int i = 0; i<data.size(); i+=superblock.getBlocksize()){
+            blocks.add(new Block(index, (ArrayList<Byte>) data.subList(i,i+superblock.getBlocksize()), ++index));
+        }
         return 0;
     }
 

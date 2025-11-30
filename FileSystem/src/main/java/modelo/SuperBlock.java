@@ -65,11 +65,4 @@ public class SuperBlock {
     public void setRoot(int root) {
         this.root = root;
     }
-
-    @Override
-    public String toString() {
-        return "SuperBlock{" + "blocksize=" + blocksize + ", numblocks=" + numblocks + ", struArea=" + struArea + ", userArea=" + userArea + ", freeblocks=" + freeblocks + ", root=" + root + '}';
-    }
-    
-    
 }
