@@ -6,12 +6,10 @@ import java.util.Scanner;
 
 public class Command {
     private Scanner scanner;
-    private UserManager um;
     
     public Command(){
         scanner= new Scanner(System.in);
-        this.um = new UserManager();
-    }
+    }/*
     
     public void handleCommand(String input){
         String [] partes = input.split(" ");
@@ -101,6 +99,6 @@ public class Command {
         
     }
 
-    public UserManager getUserManager() {return um;}
+    public UserManager getUserManager() {return um;}*/
     
 }

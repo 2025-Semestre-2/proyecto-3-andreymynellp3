@@ -1,15 +1,19 @@
 
 package modelo;
 
-public class SuperBlock {
-    private int blocksize;
-    private int numblocks;
+import java.io.Serializable;
+
+public class SuperBlock implements Serializable{
+    private static final long serialVersionUID = 1L;
+    public Integer blocksize;
+    public Integer numblocks;
+    public Integer struArea;
+    public Integer userArea;
+    public Integer freeblocks;
+    public String type;
+    public Integer root;
     
-    private int struArea;
-    private int userArea;
-    
-    private int freeblocks;
-    private int root;
+    public SuperBlock() {}
 
     public SuperBlock(int blocksize, int numblocks, int struArea, int userArea) {
         this.blocksize = blocksize;
@@ -65,4 +69,12 @@ public class SuperBlock {
     public void setRoot(int root) {
         this.root = root;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }   
 }
