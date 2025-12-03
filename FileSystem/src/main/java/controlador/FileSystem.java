@@ -41,9 +41,9 @@ public class FileSystem implements Serializable {
         superblock.numblocks = numBlocks;
         superblock.struArea = 0;
         superblock.userArea = diskSize;
-        superblock.freeblocks = numBlocks;
 
-        Block prev = new Block();;
+        Block prev = new Block();
+        superblock.freeblocks = prev;
         for (int i = 1; i < numBlocks; i++) {
             Block b = new Block();
             b.data = new ArrayList<>();//??
