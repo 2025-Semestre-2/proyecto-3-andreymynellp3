@@ -4,23 +4,27 @@
  */
 package modelo;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
-/**
- *
- * @author Andrey
- */
-public class Directory implements Serializable{
-    public static final long serialVersionUID = 1L;
-    public String name;
-    public Integer father;
-    public ArrayList<Integer> childs;
+public class Directory extends Node{
+    public ArrayList<Node> childs = new ArrayList<>();
 
-    public Directory(){}
-    
-    public Directory(String name, int father) {
-        this.name = name;
-        this.father = father;
+    public Directory(String name, Directory padre){
+        super(name,padre);
+    }
+
+    @Override
+    public boolean isDirectory() {
+        return true;
+    }
+    public void addChild(Node node){
+        childs.add(node);
+    }
+    public void removeChild(Node node){
+        childs.remove(node);
+    }
+    public Node findChild(String nombre){
+        for(Node n : childs) if(n.equals(nombre)) return n;
+        return null;
     }
 }

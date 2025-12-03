@@ -8,7 +8,8 @@ public class User implements Serializable{
     public String username;
     public String fullname;
     public String password;
-    public Integer root;
+    public Directory home;
+   
 
     public User(){}
     
@@ -17,4 +18,28 @@ public class User implements Serializable{
         this.fullname = fullname;
         this.password = password;
     }
+    public String getUsername() {
+        return username;
+    }
+
+    public String getFullname() {
+        return fullname;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setFullname(String fullname) {
+        this.fullname = fullname;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
 }

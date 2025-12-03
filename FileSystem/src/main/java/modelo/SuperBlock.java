@@ -11,7 +11,7 @@ public class SuperBlock implements Serializable{
     public Integer userArea;
     public Integer freeblocks;
     public String type;
-    public Integer root;
+    public Directory rootDirNode;
     
     public SuperBlock() {}
 
@@ -60,14 +60,6 @@ public class SuperBlock implements Serializable{
 
     public void setFreeblocks(int freeblocks) {
         this.freeblocks = freeblocks;
-    }
-
-    public int getRoot() {
-        return root;
-    }
-
-    public void setRoot(int root) {
-        this.root = root;
     }
 
     public String getType() {
