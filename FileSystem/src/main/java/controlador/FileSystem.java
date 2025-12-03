@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import modelo.Block;
 import modelo.Directory;
-import modelo.File;
 import modelo.FileControlBlock;
 import modelo.Group;
 import modelo.Node;
@@ -21,22 +20,15 @@ import modelo.User;
 
 public class FileSystem implements Serializable {
     private static final long serialVersionUID = 1L;
-    static final int T_FCB = 2, T_GROUP = 4, PREFIX_BASE = 1_000_000;
-    Map<Integer, Integer> counters = new HashMap<>();
     
     private SuperBlock superblock;
-    private Map<Integer,FileControlBlock> fbs = new HashMap<>();;
-    private Map<Integer,Block> blocks = new HashMap<>();;
-    private Map<String,User> users = new HashMap<>();;
-    private Map<Integer,Group> groups = new HashMap<>();;
-    
+
     private Directory root; // "/"
     private Directory nowDirectory ;
     private String nowUser = "root";
+    private Map<String, User> users = new HashMap<>();
     
     public FileSystem() {
-        counters.put(T_FCB, 1);
-        counters.put(T_GROUP, 1);
     }
     
     public void format(int diskSize, String rootPassword, int blockSize, String filename) throws Exception {
@@ -50,18 +42,13 @@ public class FileSystem implements Serializable {
         superblock.struArea = 0;
         superblock.userArea = diskSize;
         superblock.freeblocks = numBlocks;
-        
-        //inicializar bloques
-        fbs.clear();
-        blocks.clear();
-        users.clear();
-        groups.clear();
 
-        for (int i = 0; i < numBlocks; i++) {
+        Block prev = new Block();;
+        for (int i = 1; i < numBlocks; i++) {
             Block b = new Block();
             b.data = new ArrayList<>();//??
-            b.next = -1;
-            blocks.put(i, b);
+            b.next = prev;
+            prev = b;
         }
         //nodo raiz
         root = new Directory("/",null);
@@ -85,77 +72,6 @@ public class FileSystem implements Serializable {
         }
     }
 
-    public void format2(int newDiskSize, int newBlockSize, String rootPassword, String filename) throws Exception {
-        boolean isNew = (superblock == null);
-        if (isNew || fbs.isEmpty()) {
-            format(newDiskSize, rootPassword, newBlockSize, filename);
-            return;
-        }
-        class InMemoryFile {
-            FileControlBlock fcb;
-            ArrayList<Byte> data;
-        }
-        ArrayList<InMemoryFile> tempFiles = new ArrayList<>();
-        for (Map.Entry<Integer, FileControlBlock> entry : fbs.entrySet()) {
-            FileControlBlock fcb = entry.getValue();
-            InMemoryFile m = new InMemoryFile();
-            m.fcb = fcb;
-            m.data = new ArrayList<>();
-            int blockId = fcb.startblock;
-            while (blockId != -1) {
-                Block b = blocks.get(blockId);
-                if (b != null) {
-                    m.data.addAll(b.data);
-                    blockId = b.next;
-                } else break;
-            }
-            tempFiles.add(m);
-        }
-        int totalBytes = 0;
-        for (InMemoryFile f : tempFiles) {
-            totalBytes += f.data.size();
-        }
-        int newNumBlocks = newDiskSize / newBlockSize;
-        int newTotalCapacity = newNumBlocks * newBlockSize;
-        if (totalBytes > newTotalCapacity) {
-            throw new Exception("ERROR: No se puede reducir el disco. "
-                    + "Los datos existentes no caben en el nuevo tamaño.");
-        }
-        blocks.clear();
-        int idCounter = 5;
-        for (InMemoryFile f : tempFiles) {
-            ArrayList<Byte> rem = f.data;
-            int pos = 0;
-            Integer firstBlock = -1;
-            Integer prevBlock = -1;
-            while (pos < rem.size()) {
-                Block b = new Block();
-                b.data = new ArrayList<>();
-                int amount = Math.min(newBlockSize, rem.size() - pos);
-                for (int i = 0; i < amount; i++) {
-                    b.data.add(rem.get(pos + i));
-                }
-                pos += amount;
-                b.next = -1;
-                blocks.put(idCounter,b);
-                if (firstBlock == -1)
-                    firstBlock = idCounter;
-                if (prevBlock != -1)
-                    blocks.get(prevBlock).next = idCounter;
-
-                prevBlock = idCounter++;
-            }
-
-            f.fcb.startblock = (firstBlock == -1 ? -1 : firstBlock);
-        }
-        superblock.blocksize = newBlockSize;
-        superblock.numblocks = newNumBlocks;
-        superblock.userArea = newDiskSize;
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
-            oos.writeObject(this);
-        }
-    }
     //pendiente de implementar de manera correcta (linked)
     public void writeFile(String fsFile, String content) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("miDiscoDuro.fs", false))) {
@@ -181,7 +97,7 @@ public class FileSystem implements Serializable {
         }
 }
     
-    public void touch(String filename, int ownerId) {
+    public void touch(String filename, String username) {
         if (nowDirectory == null) {
             System.out.println("Error: directorio actual inválido.");
             return;
@@ -190,13 +106,8 @@ public class FileSystem implements Serializable {
             System.out.println("Error: Ya existe un nodo con ese nombre: " + filename);
             return;
         }
-        
-        int id = nextId(T_FCB);
-        FileControlBlock fcb = new FileControlBlock(filename,ownerId,77,-1);
-        fbs.put(id,fcb);
-        
-        File f = new File(filename,nowDirectory,id);
-        nowDirectory.addChild(f);
+        Node fcb = new FileControlBlock(filename,users.get(username),77,null, nowDirectory); //Implementar poner nodo libre
+        nowDirectory.addChild(fcb);
 
         System.out.println("Archivo creado: " + filename);
     }
@@ -208,7 +119,7 @@ public class FileSystem implements Serializable {
             }
             return false;
         }
-        Node n = nowDirectory.findChild(directorio);
+        Node n = nowDirectory.findChild(directorio); //Pendiente aplicar recursivo
         if(n!=null && n.isDirectory()){
             nowDirectory = (Directory)n;
             return true;
@@ -221,6 +132,8 @@ public class FileSystem implements Serializable {
         }
     }
     public String pwd() { return nowDirectory.path(); }
+    
+    
     //User Manager 
     public void useradd(String username, String fullname, String pass1) {
         User u = new User();
@@ -276,10 +189,5 @@ public class FileSystem implements Serializable {
     }
     public boolean isLogget(){
         return nowUser.equals("root");
-    }
-    public int nextId(int type) {
-        int c = counters.get(type);
-        counters.put(type, c + 1);
-        return type * PREFIX_BASE + c;
     }
 }

@@ -2,19 +2,21 @@ package modelo;
 
 import java.io.Serializable;
 
-public class FileControlBlock implements Serializable {
+public class FileControlBlock extends Node {
     private static final long serialVersionUID = 1L;
-    public String name;
-    public Integer owner;
+    public User owner;
     public Integer permitions;
-    public Integer startblock;
-
-    public FileControlBlock(){}
+    public Block startblock;
     
-    public FileControlBlock(String name, int owner, int permitions, int startblock) {
-        this.name = name;
+    public FileControlBlock(String name, User owner, int permitions, Block startblock, Directory father) {
+        super(name,father);
         this.owner = owner;
         this.permitions = permitions;
         this.startblock = startblock;
+    }
+    
+    @Override
+    public boolean isDirectory() {
+        return false;
     }
 }

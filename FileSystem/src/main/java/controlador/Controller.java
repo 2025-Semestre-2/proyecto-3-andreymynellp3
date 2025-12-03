@@ -26,14 +26,14 @@ public class Controller {
                 System.out.print("type the block size: ");
                 int tamBlock = Integer.parseInt(scanner.nextLine());
                 
-                fs.format2(100,tamBlock,"rootpass","miDiscoDuro.fs");
+                //fs.format2(100,tamBlock,"rootpass","miDiscoDuro.fs");
                 break;
             }
             else if (partes.length ==2){
                 System.out.print("type the block size: ");
                 int tamBlock = Integer.parseInt(scanner.nextLine());
                 
-                fs.format2(100,tamBlock,"rootpass",partes[2]);
+                //fs.format2(100,tamBlock,"rootpass",partes[2]);
                 break;
             }else{
                 System.out.println("try with:");

@@ -14,8 +14,8 @@ import java.util.ArrayList;
 public class Group implements Serializable {
     private static final long serialVersionUID = 1L;
     private String name;
-    private ArrayList<Integer> users = new ArrayList<>();
-    private ArrayList<Integer> files = new ArrayList<>();
+    private ArrayList<User> users = new ArrayList<>();
+    private ArrayList<Node> nodes = new ArrayList<>();
     
     public Group(String name) { this.name = name; }
 }
