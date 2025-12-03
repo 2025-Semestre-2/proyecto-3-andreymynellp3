@@ -54,11 +54,11 @@ public class SuperBlock implements Serializable{
         this.userArea = userArea;
     }
 
-    public int getFreeblocks() {
+    public Block getFreeblocks() {
         return freeblocks;
     }
 
-    public void setFreeblocks(int freeblocks) {
+    public void setFreeblocks(Block freeblocks) {
         this.freeblocks = freeblocks;
     }
 
