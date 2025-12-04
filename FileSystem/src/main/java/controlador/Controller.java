@@ -20,22 +20,25 @@ public class Controller {
     public void ejecutar() throws Exception{
         String filename="";
         System.out.println("execute terminal");
-        while(true){
+        OUTER:
+        while (true) {
             String input = scanner.nextLine().trim();
             String [] partes = input.split(" ");
-            if(partes.length ==2){
-                filename = "miDiscoDuro.fs";
-                break;
+            switch (partes.length) {
+                case 2 -> {
+                    filename = "miDiscoDuro.fs";
+                    break OUTER;
+                }
+                case 3 -> {
+                    filename=partes[2];
+                    break OUTER;
+                }
+                default -> {
+                    System.out.println("try with:");
+                    System.out.println("java myFileSystem");
+                    System.out.println("java myFileSystem <filename>");
+                }
             }
-            else if (partes.length ==3){
-                filename=partes[2];
-                break;
-            }else{
-                System.out.println("try with:");
-                System.out.println("java myFileSystem");
-                System.out.println("java myFileSystem <filename>");
-                
-            } 
         }
         startShell(filename);
 
@@ -63,8 +66,16 @@ public class Controller {
             case "useradd":
                 handleUserAdd(input);
                 break;
+            case "groupadd"://< Andrey
+                break;
             case "passwd":
                 handlePasswd(input);
+                break;
+            case "su":
+                handleSu(input);
+                break;
+            case "whoami":
+                System.out.println(fs.whoami());
                 break;
             case "pwd":
                 System.out.println(fs.pwd());
@@ -73,23 +84,41 @@ public class Controller {
             case "mkdir":
                 handleMkdir(input);
                 break;
-            case "touch":
-                handleTouch(input);
+            case "rm": //< Mynell
                 break;
-            case "cd":
-                handleCD(input);
+            case "mv": //< Mynell
                 break;
-            case "whoami":
-                System.out.println(fs.whoami());
-                break;
-            case "su":
-                handleSu(input);
+            case "ls": //<
                 break;
             case "clear":
                 clearScreen();
                 break;
-                
-                
+            case "cd":
+                handleCD(input);
+                break;
+            case "whereis": //<
+                break;
+            case "ln": //<
+                break;
+            case "touch":
+                handleTouch(input);
+                break;
+            case "cat": //<
+                break;
+            case "chown": //<
+                break;
+            case "chgrp": //< Andrey
+                break;
+            case "chmod": //<
+                break;
+            case "openFile": //<
+                break;
+            case "closeFile": //<
+                break; 
+            case "viewFCB": //<
+                break;
+            case "infoFS": //<
+                break;
             default:
                 System.out.println("Error: unrecognized command.");
         }
