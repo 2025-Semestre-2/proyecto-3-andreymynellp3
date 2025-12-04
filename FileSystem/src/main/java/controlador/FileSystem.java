@@ -33,39 +33,44 @@ public class FileSystem implements Serializable {
     
     public void format(int diskSize, String rootPassword, int blockSize, String filename) throws Exception {
         int numBlocks = diskSize / blockSize;
-        if (numBlocks <= 0) {
-            throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
-        }
+        if (numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
+
         superblock = new SuperBlock();
         superblock.blocksize = blockSize;
         superblock.numblocks = numBlocks;
         superblock.struArea = 0;
         superblock.userArea = diskSize;
-        
+
         blocks.clear();
-        Block prev = new Block();
-        
-        superblock.freeblocks = prev;
-        for (int i = 1; i < numBlocks; i++) {
+
+        // Creamos la free list como una lista enlazada de Block; poner todos los bloques y enlazarlos
+        Block first = null;
+        Block prev = null;
+        for (int i = 0; i < numBlocks; i++) {
             Block b = new Block();
-            b.data = new ArrayList<>();//??
-            b.next = prev;
+            b.data = new ArrayList<>();
+            b.next = null;
+            blocks.put(i, b);    // guardamos cada bloque por índice
+            if (first == null) first = b;
+            if (prev != null) {
+                prev.next = b;   // prev -> b
+            }
             prev = b;
-            blocks.put(i,b);
         }
-        //nodo raiz
-        root = new Directory("/",null);
+        superblock.freeblocks = first; // head de la lista libre
+
+        // nodo raiz
+        root = new Directory("/", null);
         nowDirectory = root;
         superblock.rootDirNode = root;
-        
-        //usuario root
+
+        // usuario root
         User rootUser = new User();
         rootUser.username = "root";
         rootUser.fullname = "Super Usuario";
         rootUser.password = rootPassword;
-  
 
-        Directory rootHome = new Directory("root",root);
+        Directory rootHome = new Directory("root", root);
         root.addChild(rootHome);
         rootUser.home = rootHome;
         users.put(rootUser.username, rootUser);
@@ -74,6 +79,7 @@ public class FileSystem implements Serializable {
             oos.writeObject(this);
         }
     }
+
 
     //pendiente de implementar de manera correcta (linked)
     public void writeFile(String fsFile, String content) {
@@ -91,6 +97,7 @@ public class FileSystem implements Serializable {
             }
         if (nowDirectory.findChild(name) != null) {
             System.out.println("Ya existe: " + name);
+            return;
         }
         Directory d = new Directory(name, nowDirectory);
         nowDirectory.addChild(d);

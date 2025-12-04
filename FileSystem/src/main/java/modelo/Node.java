@@ -14,10 +14,13 @@ public abstract class Node implements Serializable {
     }
     public abstract boolean isDirectory();
     public String path(){
-        if(padre == null) return nombre;
-        String p = padre.path();
-        if(p.endsWith("/")) return p+nombre;
-        return p + "/"+nombre;
+        if (padre == null) {
+            return (nombre == null || nombre.isEmpty()) ? "/" : nombre;
+        }
+        if (padre.padre == null) {
+            return "/" + nombre;
+        }
+        return padre.path() + "/" + nombre;
     }
     
 }

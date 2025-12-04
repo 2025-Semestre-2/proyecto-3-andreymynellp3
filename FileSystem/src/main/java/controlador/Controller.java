@@ -58,7 +58,7 @@ public class Controller {
                 handleNote(input);
                 break;
             case "format":
-                handleFormat(input,filename);//incompleto
+                handleFormat(input,filename);
                 break;
             case "useradd":
                 handleUserAdd(input);
@@ -67,6 +67,7 @@ public class Controller {
                 handlePasswd(input);
                 break;
             case "pwd":
+                System.out.println(fs.pwd());
                 fs.pwd();
                 break;
             case "mkdir":
@@ -74,6 +75,9 @@ public class Controller {
                 break;
             case "touch":
                 handleTouch(input);
+                break;
+            case "cd":
+                handleCD(input);
                 break;
             case "whoami":
                 System.out.println(fs.whoami());
@@ -109,6 +113,15 @@ public class Controller {
         }
         
         fs.touch(partes[1]);
+    }
+    public void handleCD(String input){
+        String [] partes = input.split(" ");
+        if(partes.length >2){
+            System.out.println("Error: unrecognized command, try: touch <filename>");
+            return;
+        }
+        
+        fs.cd(partes[1]);
     }
     public void handleFormat(String input,String filename ){
         try{
@@ -147,13 +160,7 @@ public class Controller {
             System.getLogger(Controller.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
-    private Integer validarInt(String s){
-        try {
-            return Integer.parseInt(s);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
+
     
     public void clearScreen() {
         
@@ -272,6 +279,54 @@ public class Controller {
         }
         
     }
+    /*
+    =================================================
+    Auxiliares
+    =================================================
+    
+    */
+    private Integer validarInt(String s){
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+    public String readPasswordMasked(String prompt) {
+        System.out.print(prompt);
+
+        StringBuilder password = new StringBuilder();
+
+        try {
+            while (true) {
+                int c = System.in.read();
+
+                // ENTER → finalizar
+                if (c == '\n' || c == '\r') {
+                    System.out.println();
+                    break;
+                }
+
+                // BACKSPACE → borrar
+                if (c == 8 || c == 127) {
+                    if (password.length() > 0) {
+                        password.deleteCharAt(password.length() - 1);
+                        System.out.print("\b \b"); // borra el *
+                    }
+                    continue;
+                }
+
+                // caracter normal
+                password.append((char) c);
+                System.out.print("*");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return password.toString();
+    }
+
 
 
 }

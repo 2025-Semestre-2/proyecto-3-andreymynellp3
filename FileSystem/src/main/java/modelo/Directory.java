@@ -24,7 +24,9 @@ public class Directory extends Node{
         childs.remove(node);
     }
     public Node findChild(String nombre){
-        for(Node n : childs) if(n.equals(nombre)) return n;
+        for(Node n : childs) {
+            if (n.nombre != null && n.nombre.equals(nombre)) return n;
+        }
         return null;
     }
 }
