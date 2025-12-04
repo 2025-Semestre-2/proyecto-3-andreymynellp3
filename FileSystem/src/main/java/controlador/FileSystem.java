@@ -176,6 +176,25 @@ public class FileSystem implements Serializable {
     }
     public String pwd() { return nowDirectory.path(); }
     
+    public String whereIs(String target){
+        Node search = searchDFS(nowDirectory, target);
+        return search != null ? search.path() : null;
+    }
+    
+    public Node searchDFS(Directory n, String target){
+        for(Node c: n.childs){
+            if(!c.isDirectory()){
+                if(c.nombre.equals(target)){
+                    return c;
+                }
+            }else{
+                Node temp = searchDFS((Directory)c,target);
+                if(temp!=null){
+                    return temp;
+                }
+            }
+        }return null;
+    }
     
     //User Manager 
     public void useradd(String username, String fullname, String pass1) {
@@ -230,6 +249,27 @@ public class FileSystem implements Serializable {
     public void logout(){
         nowUser = "root";
     }
+    
+    public void chown(String username, String filename, boolean r){
+        User u = users.get(username);
+        if(u != null){
+            for(Node n: nowDirectory.childs){
+                if(n.nombre.equals(filename)){
+                    n.owner = u;
+                    if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
+                    break;
+                }
+            }
+        }
+    }
+    
+    public void recursiveChown(Directory n, User u){
+        for(Node node : n.childs){
+            node.owner = u;
+            if (n.isDirectory()) {recursiveChown((Directory)node,u);}
+        }
+    }
+    
     public boolean isLogget(){
         return nowUser.equals("root");
     }

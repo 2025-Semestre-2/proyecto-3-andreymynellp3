@@ -8,7 +8,7 @@ public class FileControlBlock extends Node {
     public Block startblock;
     public LocalDateTime createdAt;
     public boolean open = false;
-    public int size =0;
+    public int sizeFile =0;
     
     public FileControlBlock(String name, User owner, int permitions, Block startblock, Directory father) {
         super(name,father,owner, permitions);
