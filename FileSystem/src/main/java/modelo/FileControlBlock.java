@@ -7,6 +7,7 @@ public class FileControlBlock extends Node {
     public User owner;
     public Integer permitions;
     public Block startblock;
+    int size =0;
     
     public FileControlBlock(String name, User owner, int permitions, Block startblock, Directory father) {
         super(name,father);

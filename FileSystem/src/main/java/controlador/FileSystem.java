@@ -22,7 +22,7 @@ public class FileSystem implements Serializable {
     private static final long serialVersionUID = 1L;
     
     private SuperBlock superblock;
-
+    private Map<Integer, Block> blocks = new HashMap<>();
     private Directory root; // "/"
     private Directory nowDirectory ;
     private String nowUser = "root";
@@ -41,14 +41,17 @@ public class FileSystem implements Serializable {
         superblock.numblocks = numBlocks;
         superblock.struArea = 0;
         superblock.userArea = diskSize;
-
+        
+        blocks.clear();
         Block prev = new Block();
+        
         superblock.freeblocks = prev;
         for (int i = 1; i < numBlocks; i++) {
             Block b = new Block();
             b.data = new ArrayList<>();//??
             b.next = prev;
             prev = b;
+            blocks.put(i,b);
         }
         //nodo raiz
         root = new Directory("/",null);
@@ -81,23 +84,21 @@ public class FileSystem implements Serializable {
         }
     }
     // COMANDOS
-    public void mkdir(String... names) {
+    public void mkdir(String name) {
         if (nowDirectory == null) {
             System.out.println("Directorio actual inválido.");
             return;
             }
-        for (String name : names) {
-            if (nowDirectory.findChild(name) != null) {
-                System.out.println("Ya existe: " + name);
-                continue;
-            }
-            Directory d = new Directory(name, nowDirectory);
-            nowDirectory.addChild(d);
-            System.out.println("Directorio creado: " + name);
+        if (nowDirectory.findChild(name) != null) {
+            System.out.println("Ya existe: " + name);
         }
-}
+        Directory d = new Directory(name, nowDirectory);
+        nowDirectory.addChild(d);
+        System.out.println("Directorio creado: " + name);
+        
+    }
     
-    public void touch(String filename, String username) {
+    public void touch(String filename) {
         if (nowDirectory == null) {
             System.out.println("Error: directorio actual inválido.");
             return;
@@ -106,7 +107,7 @@ public class FileSystem implements Serializable {
             System.out.println("Error: Ya existe un nodo con ese nombre: " + filename);
             return;
         }
-        Node fcb = new FileControlBlock(filename,users.get(username),77,null, nowDirectory); //Implementar poner nodo libre
+        FileControlBlock fcb = new FileControlBlock(filename,users.get(nowUser),77,null, nowDirectory); //Implementar poner nodo libre
         nowDirectory.addChild(fcb);
 
         System.out.println("Archivo creado: " + filename);
