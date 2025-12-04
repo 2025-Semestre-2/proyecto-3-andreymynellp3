@@ -7,10 +7,14 @@ import java.io.Serializable;
 public abstract class Node implements Serializable {
     public String nombre;
     public Directory padre;
+    public User owner;
+    public Integer permitions;
 
-    public Node(String nombre, Directory padre) {
+    public Node(String nombre, Directory padre, User owner, Integer perm) {
         this.nombre = nombre;
         this.padre = padre;
+        this.owner = owner;
+        this.permitions = perm;
     }
     public abstract boolean isDirectory();
     public String path(){

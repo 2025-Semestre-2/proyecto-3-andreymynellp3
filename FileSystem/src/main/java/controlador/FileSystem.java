@@ -60,7 +60,7 @@ public class FileSystem implements Serializable {
         superblock.freeblocks = first; // head de la lista libre
 
         // nodo raiz
-        root = new Directory("/", null);
+        root = new Directory("/", null,null,0);
         nowDirectory = root;
         superblock.rootDirNode = root;
 
@@ -70,7 +70,7 @@ public class FileSystem implements Serializable {
         rootUser.fullname = "Super Usuario";
         rootUser.password = rootPassword;
 
-        Directory rootHome = new Directory("root", root);
+        Directory rootHome = new Directory("root", root,rootUser,70);
         root.addChild(rootHome);
         rootUser.home = rootHome;
         users.put(rootUser.username, rootUser);
@@ -99,7 +99,7 @@ public class FileSystem implements Serializable {
             System.out.println("Ya existe: " + name);
             return;
         }
-        Directory d = new Directory(name, nowDirectory);
+        Directory d = new Directory(name, nowDirectory,users.get(nowUser), 77);
         nowDirectory.addChild(d);
         System.out.println("Directorio creado: " + name);
         
@@ -150,7 +150,7 @@ public class FileSystem implements Serializable {
         u.password = pass1;
         users.put(u.username, u);
 
-        Directory home = new Directory(username,root);
+        Directory home = new Directory(username,root, u, 70);
         root.addChild(home);
         u.home = home;
         users.put(username, u);
