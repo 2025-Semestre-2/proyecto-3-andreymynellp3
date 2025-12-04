@@ -117,8 +117,10 @@ public class Controller {
             case "chmod": //<
                 break;
             case "openFile": //<
+                handleOpenFile(partes);
                 break;
             case "closeFile": //<
+                handleCloseFile(partes);
                 break; 
             case "viewFCB": //<
                 break;
@@ -189,6 +191,19 @@ public class Controller {
             return;
         }
         System.out.println(fs.whereIs(partes[1]));
+    }
+    
+    public void handleOpenFile(String[] partes){
+        if(partes.length != 2){
+            System.out.println("Error: unrecognized command, try: openFile <filename>");
+            return;
+        }fs.openFile(partes[1]);
+    }
+    public void handleCloseFile(String[] partes){
+        if(partes.length != 2){
+            System.out.println("Error: unrecognized command, try: closeFile <filename>");
+            return;
+        }fs.closeFile(partes[1]);
     }
     
     public void handleFormat(String [] partes,String filename ){

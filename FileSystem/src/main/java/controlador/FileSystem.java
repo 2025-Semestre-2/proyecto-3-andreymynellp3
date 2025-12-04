@@ -107,13 +107,11 @@ public class FileSystem implements Serializable {
     
     public void rm(String filename, boolean r){
         Node n = nowDirectory.findChild(filename);
-        if(r){
-            if(n != null){
+        if(n != null){
+            if(r){
                 nowDirectory.removeChild(n);
             }
-        }
-        else{
-            if(n != null){
+            else{
                 if (n.isDirectory()){
                     nowDirectory.childs.addAll(((Directory)n).childs);
                 }
@@ -196,6 +194,20 @@ public class FileSystem implements Serializable {
         }return null;
     }
     
+    public void openFile(String n){
+        Node c = nowDirectory.findChild(n);
+        if(c != null && !c.isDirectory()){
+            ((FileControlBlock)c).open = true;
+        }
+    }
+    
+    public void closeFile(String n){
+        Node c = nowDirectory.findChild(n);
+        if(c != null && !c.isDirectory()){
+            ((FileControlBlock)c).open = false;
+        }
+    }
+    
     //User Manager 
     public void useradd(String username, String fullname, String pass1) {
         User u = new User();
@@ -253,12 +265,10 @@ public class FileSystem implements Serializable {
     public void chown(String username, String filename, boolean r){
         User u = users.get(username);
         if(u != null){
-            for(Node n: nowDirectory.childs){
-                if(n.nombre.equals(filename)){
-                    n.owner = u;
-                    if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
-                    break;
-                }
+            Node n = nowDirectory.findChild(filename);
+            if(n != null){
+                n.owner = u;
+                if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
             }
         }
     }
