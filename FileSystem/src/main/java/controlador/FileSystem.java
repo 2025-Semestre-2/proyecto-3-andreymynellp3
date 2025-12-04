@@ -161,9 +161,17 @@ public class FileSystem implements Serializable {
         }
         return false;
     }
-    public void ls(){
+    public void ls(boolean r){
+        System.out.println(nowDirectory.nombre);
         for(Node n : nowDirectory.childs){
-            System.out.println((n.isDirectory() ? "d " : "f ") + n.nombre);
+            System.out.println("> "+(n.isDirectory() ? "d " : "f ") + n.nombre);
+            if (r && n.isDirectory()){recursiveLs((Directory)n,"  ");}
+        }
+    }
+    public void recursiveLs(Directory n, String level){
+        for(Node node : n.childs){
+            System.out.println(level+"> "+(node.isDirectory() ? "d " : "f ") + node.nombre);
+            if (n.isDirectory()) {recursiveLs((Directory)node,level+"  ");}
         }
     }
     public String pwd() { return nowDirectory.path(); }
