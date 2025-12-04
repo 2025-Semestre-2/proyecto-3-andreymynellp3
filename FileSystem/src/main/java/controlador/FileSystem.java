@@ -105,6 +105,33 @@ public class FileSystem implements Serializable {
         
     }
     
+    public void rm(String filename, boolean r){
+        Node n = nowDirectory.findChild(filename);
+        if(r){
+            if(n != null){
+                nowDirectory.removeChild(n);
+            }
+        }
+        else{
+            if(n != null){
+                if (n.isDirectory()){
+                    nowDirectory.childs.addAll(((Directory)n).childs);
+                }
+                nowDirectory.removeChild(n);
+            }
+        }
+    }
+    public void mv(String filename, String directory){
+        Node file = nowDirectory.findChild(filename);
+        Node dir = nowDirectory.findChild(directory);
+        if (file != null && dir != null){
+            if (dir.isDirectory()){
+                ((Directory)dir).addChild(file);
+                nowDirectory.removeChild(file);
+            }
+        }
+    }
+    
     public void touch(String filename) {
         if (nowDirectory == null) {
             System.out.println("Error: directorio actual inválido.");

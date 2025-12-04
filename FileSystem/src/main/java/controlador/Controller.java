@@ -84,9 +84,11 @@ public class Controller {
             case "mkdir":
                 handleMkdir(input);
                 break;
-            case "rm": //< Mynell
+            case "rm":
+                handleRM(input);
                 break;
-            case "mv": //< Mynell
+            case "mv":
+                handleMV(input);
                 break;
             case "ls": //<
                 break;
@@ -146,12 +148,33 @@ public class Controller {
     public void handleCD(String input){
         String [] partes = input.split(" ");
         if(partes.length >2){
-            System.out.println("Error: unrecognized command, try: touch <filename>");
+            System.out.println("Error: unrecognized command, try: cd <directory>");
             return;
         }
         
         fs.cd(partes[1]);
     }
+    
+    public void handleRM(String input){
+       String [] partes = input.split(" ");
+       boolean recursive = partes[1].toLowerCase().equals("-r");
+       if((recursive && partes.length != 3)|| (!recursive && partes.length >2)){
+           System.out.println("Error: unrecognized command, try: rm <filename/directory> or rm -r <filename/directory>");
+           return;
+       }
+       if (recursive){fs.rm(partes[2], true);
+       }else{fs.rm(partes[1], false);}
+    }
+    
+    public void handleMV(String input){
+       String [] partes = input.split(" ");
+       if(partes.length >3){
+            System.out.println("Error: unrecognized command, try: mv <filename> <directory>");
+            return;
+        }
+       fs.mv(partes[1], partes[2]);
+   }
+    
     public void handleFormat(String input,String filename ){
         try{
             String [] partes = input.split(" ");

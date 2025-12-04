@@ -19,4 +19,12 @@ public class Group implements Serializable {
     private ArrayList<Node> nodes = new ArrayList<>();
     
     public Group(String name, User user) { this.name = name; this.owner = user;}
+    
+    public void addUser(User u){
+        users.add(u);
+    }
+    
+    public void addDirFile(Node d){
+        nodes.add(d);
+    }  
 }

@@ -9,8 +9,8 @@ import java.util.ArrayList;
 public class Directory extends Node{
     public ArrayList<Node> childs = new ArrayList<>();
 
-    public Directory(String name, Directory padre){
-        super(name,padre);
+    public Directory(String name, Directory padre, User owner, Integer perm){
+        super(name,padre, owner, perm);
     }
 
     @Override
@@ -19,14 +19,28 @@ public class Directory extends Node{
     }
     public void addChild(Node node){
         childs.add(node);
+        addSize();
     }
     public void removeChild(Node node){
         childs.remove(node);
+        subSize();
     }
     public Node findChild(String nombre){
         for(Node n : childs) {
             if (n.nombre != null && n.nombre.equals(nombre)) return n;
         }
         return null;
+    }
+    public void addSize(){
+        if (super.padre != null){
+            super.padre.addSize();
+        }
+        super.size++;
+    }
+    public void subSize(){
+        if (super.padre != null){
+            super.padre.addSize();
+        }
+        super.size++;
     }
 }

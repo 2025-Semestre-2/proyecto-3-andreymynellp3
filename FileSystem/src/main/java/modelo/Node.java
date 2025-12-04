@@ -9,6 +9,7 @@ public abstract class Node implements Serializable {
     public Directory padre;
     public User owner;
     public Integer permitions;
+    public Integer size = 0;
 
     public Node(String nombre, Directory padre, User owner, Integer perm) {
         this.nombre = nombre;
