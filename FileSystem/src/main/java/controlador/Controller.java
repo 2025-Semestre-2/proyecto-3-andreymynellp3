@@ -56,13 +56,13 @@ public class Controller {
         switch(partes[0]){
             
             case "format":
-                handleFormat(input,filename);
+                handleFormat(partes,filename);
                 break;
             case "useradd":
-                handleUserAdd(input);
+                handleUserAdd(partes);
                 break;
             case "passwd":
-                handlePasswd(input);
+                handlePasswd(partes);
                 break;
             case "groupadd":
                 handleGroupadd(partes);
@@ -71,7 +71,7 @@ public class Controller {
                 handleUsermod(partes);
                 break;
             case "su":
-                handleSu(input);
+                handleSu(partes);
                 break;
             case "whoami":
                 System.out.println(fs.whoami());
@@ -95,7 +95,7 @@ public class Controller {
                 clearScreen();
                 break;
             case "cd":
-                handleCD(input);
+                handleCD(partes);
                 break;
             case "whereis":
                 handleWhereIs(partes);
@@ -113,7 +113,7 @@ public class Controller {
                 handleChown(partes);
                 break;
             case "chgrp": 
-                handleChgrp(input);
+                handleChgrp(partes);
                 break;
             case "chmod": //< 
                 break;
@@ -124,29 +124,37 @@ public class Controller {
                 handleCloseFile(partes);
                 break; 
             case "viewFCB": //<
+                handleViewFCB(partes);
                 break;
-            case "infoFS": //<
+            case "infoFS":
+                fs.infoFS();
                 break;
             case "note":
-                handleNote(input);
+                handleNote(partes);
                 break;
 
             default:
                 System.out.println("Error: unrecognized command.");
         }
     }
-    public void handleChgrp(String input){
-        String [] partes = input.split(" ");
+    public void handleChgrp(String[] partes){
         if(partes.length >4){
             System.out.println("Error: unrecognized command, try: chgrp groupname filename <optional:-R> <filename or directory>");
             return;
         }
-        if(input.contains("-R")){
+        if(partes[1].toLowerCase().equals("-r")){
             fs.chgrp(partes[1],partes[2],partes[3]);
         }else{
             fs.chgrp(partes[1],"",partes[3]);
         }
         
+    }
+    public void handleViewFCB(String[] partes){
+        if(partes.length != 2){
+            System.out.println("Error: unrecognized command, try: viewFCB <filename>");
+            return;
+        }
+        fs.viewFCB(partes[1]);
     }
     public void handleCat(String[] partes){
         try {
@@ -217,8 +225,7 @@ public class Controller {
         }
         fs.chown(r? partes[2]:partes[1], r? partes[3]:partes[2], r);   
     }
-    public void handleCD(String input){
-        String [] partes = input.split(" ");
+    public void handleCD(String[] partes){
         if(partes.length >2){
             System.out.println("Error: unrecognized command, try: touch <filename>");
             return;
@@ -264,9 +271,8 @@ public class Controller {
             return;
         }fs.closeFile(partes[1]);
     }
-    public void handleFormat(String input,String filename ){
+    public void handleFormat(String[] partes,String filename ){
         try{
-            String [] partes = input.split(" ");
             if(partes.length != 2){
                 System.out.println("Error: unrecognized command, try: format <number>");
                 return;
@@ -335,8 +341,7 @@ public class Controller {
         return finalTxt.toString();
     }
 
-    public void handleNote(String input){
-        String [] partes = input.split(" ");
+    public void handleNote(String[] partes){
         if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: note <filename>");
             return;
@@ -362,8 +367,7 @@ public class Controller {
         
     }
 
-    public void handleUserAdd(String input){
-        String [] partes = input.split(" ");
+    public void handleUserAdd(String[] partes){
         if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: useradd <username>");
             return;
@@ -391,8 +395,7 @@ public class Controller {
         
         
     }
-    public void handlePasswd(String input){
-        String [] partes = input.split(" ");
+    public void handlePasswd(String[] partes){
         if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: passwd <username>");
             return;
@@ -409,8 +412,7 @@ public class Controller {
         fs.passwd(partes[1], password2);
         
     }
-    public void handleSu(String input){
-        String [] partes = input.split(" ");
+    public void handleSu(String[] partes){
         if(partes.length >2){
             System.out.println("Error: unrecognized command, try: su <username>");
             return;

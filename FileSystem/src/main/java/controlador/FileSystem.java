@@ -105,16 +105,13 @@ public class FileSystem implements Serializable {
     public boolean fileExist(String filename){
         Node n = nowDirectory.findChild(filename);
        
-        if(n ==null || n.isDirectory()){
-            return false;
-        }
-        return true;
+        return !(n ==null || n.isDirectory());
         
     }
     public void writeFile(String filename, String content) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception("Erro: File not found");
+            throw new Exception("Error: File not found");
         }
         FileControlBlock fcb = (FileControlBlock) n;
         //liberar
@@ -253,6 +250,26 @@ public class FileSystem implements Serializable {
             return nodeOnPath(((Directory)n).findChild(path[0]),Arrays.copyOfRange(path, 1, path.length));
         }
         return null;
+    }
+    
+    public void infoFS(){
+        System.out.println("Nombre del FileSystem: myFs");
+        System.out.println("Tamaño: "+ superblock.blocksize*superblock.numblocks+" bytes");
+        System.out.println("Espacio utilizado: "+ superblock.blocksize*root.size+" bytes");
+        System.out.println("Disponible: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*root.size)+" bytes");
+    }
+    
+    public void viewFCB(String filename){
+        Node n = nowDirectory.findChild(filename);
+        if (!n.isDirectory()){
+            FileControlBlock temp = (FileControlBlock)n;
+            System.out.println("Nombre: "+temp.nombre);
+            System.out.println("Dueño: "+temp.owner.username);
+            System.out.println("Fecha de creación: "+temp.createdAt);
+            System.out.println((temp.open? "Abierto":"Cerrado"));
+            System.out.println("Tamaño: "+temp.size);
+            System.out.println("Ubicación: "+temp.path());
+        }
     }
     
     public void ls(boolean r){
