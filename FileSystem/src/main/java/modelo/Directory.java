@@ -16,15 +16,28 @@ public class Directory extends Node{
     }
     public void addChild(Node node){
         childs.add(node);
+        addSize();
     }
     public void removeChild(Node node){
         childs.remove(node);
+        subSize();
     }
     public Node findChild(String nombre){
         for(Node n : childs) {
             if (n.nombre != null && n.nombre.equals(nombre)) return n;
         }
         return null;
-      
+    }
+     public void addSize(){
+        if (super.padre != null){
+            super.padre.addSize();
+        }
+        super.size++;
+    }
+    public void subSize(){
+        if (super.padre != null){
+            super.padre.addSize();
+        }
+        super.size++;
     }
 }
