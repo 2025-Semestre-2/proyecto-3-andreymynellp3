@@ -1,3 +1,4 @@
+
 package modelo;
 
 import java.io.Serializable;
@@ -6,19 +7,16 @@ public class SuperBlock implements Serializable{
     private static final long serialVersionUID = 1L;
     public Integer blocksize;
     public Integer numblocks;
-    public Integer struArea;
-    public Integer userArea;
+    
     public Block freeblocks;
-    public String type;
     public Directory rootDirNode;
     
     public SuperBlock() {}
 
-    public SuperBlock(int blocksize, int numblocks, int struArea, int userArea) {
+    public SuperBlock(int blocksize, int numblocks) {
         this.blocksize = blocksize;
         this.numblocks = numblocks;
-        this.struArea = struArea;
-        this.userArea = userArea;
+
     }
 
     public int getBlocksize() {
@@ -37,22 +35,6 @@ public class SuperBlock implements Serializable{
         this.numblocks = numblocks;
     }
 
-    public int getStruArea() {
-        return struArea;
-    }
-
-    public void setStruArea(int struArea) {
-        this.struArea = struArea;
-    }
-
-    public int getUserArea() {
-        return userArea;
-    }
-
-    public void setUserArea(int userArea) {
-        this.userArea = userArea;
-    }
-
     public Block getFreeblocks() {
         return freeblocks;
     }
@@ -61,11 +43,4 @@ public class SuperBlock implements Serializable{
         this.freeblocks = freeblocks;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }   
 }

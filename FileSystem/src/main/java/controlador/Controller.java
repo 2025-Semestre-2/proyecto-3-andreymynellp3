@@ -20,25 +20,22 @@ public class Controller {
     public void ejecutar() throws Exception{
         String filename="";
         System.out.println("execute terminal");
-        OUTER:
-        while (true) {
+        while(true){
             String input = scanner.nextLine().trim();
             String [] partes = input.split(" ");
-            switch (partes.length) {
-                case 2 -> {
-                    filename = "miDiscoDuro.fs";
-                    break OUTER;
-                }
-                case 3 -> {
-                    filename=partes[2];
-                    break OUTER;
-                }
-                default -> {
-                    System.out.println("try with:");
-                    System.out.println("java myFileSystem");
-                    System.out.println("java myFileSystem <filename>");
-                }
+            if(partes.length ==2 && partes[0].equals("java") && partes[1].equals("myFileSystem")){
+                filename = "miDiscoDuro.fs";
+                break;
             }
+            else if (partes.length ==3 && partes[0].equals("java") && partes[1].equals("myFileSystem")){
+                filename=partes[2];
+                break;
+            }else{
+                System.out.println("try with:");
+                System.out.println("java myFileSystem");
+                System.out.println("java myFileSystem <filename>");
+                
+            } 
         }
         startShell(filename);
 
@@ -57,32 +54,33 @@ public class Controller {
     public void handleCommand(String input,String filename ){
         String [] partes = input.split(" ");
         switch(partes[0]){
-            case "note":
-                handleNote(partes);
-                break;
+            
             case "format":
-                handleFormat(partes,filename);
+                handleFormat(input,filename);
                 break;
             case "useradd":
-                handleUserAdd(partes);
-                break;
-            case "groupadd"://< Andrey
+                handleUserAdd(input);
                 break;
             case "passwd":
-                handlePasswd(partes);
+                handlePasswd(input);
+                break;
+            case "groupadd":
+                handleGroupadd(input);
+                break;
+            case "usermod":
+                handleUsermod(input);
                 break;
             case "su":
-                handleSu(partes);
+                handleSu(input);
                 break;
             case "whoami":
                 System.out.println(fs.whoami());
                 break;
             case "pwd":
                 System.out.println(fs.pwd());
-                fs.pwd();
                 break;
             case "mkdir":
-                handleMkdir(partes);
+                handleMkdir(input);
                 break;
             case "rm":
                 handleRM(partes);
@@ -97,7 +95,7 @@ public class Controller {
                 clearScreen();
                 break;
             case "cd":
-                handleCD(partes);
+                handleCD(input);
                 break;
             case "whereis":
                 handleWhereIs(partes);
@@ -106,16 +104,17 @@ public class Controller {
                 handleLn(partes);
                 break;
             case "touch":
-                handleTouch(partes);
+                handleTouch(input);
                 break;
-            case "cat": //<
+            case "cat":
+                handleCat(input);
                 break;
             case "chown":
                 handleChown(partes);
                 break;
             case "chgrp": //< Andrey
                 break;
-            case "chmod": //<
+            case "chmod": //< 
                 break;
             case "openFile":
                 handleOpenFile(partes);
@@ -127,11 +126,54 @@ public class Controller {
                 break;
             case "infoFS": //<
                 break;
+            case "note":
+                handleNote(input);
+                break;
+
             default:
                 System.out.println("Error: unrecognized command.");
         }
     }
-    public void handleMkdir(String [] partes){
+    public void handleCat(String input){
+        try {
+            String [] partes = input.split(" ");
+            if(partes.length !=2){
+                System.out.println("Error: unrecognized command, try: cat <filename>");
+                return;
+            }
+            System.out.println(fs.readFile(partes[1]));
+            
+        } catch (Exception ex) {
+            System.getLogger(Controller.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
+
+    }
+    public void handleGroupadd(String input){
+        String [] partes = input.split(" ");
+        if(partes.length !=2){
+            System.out.println("Error: unrecognized command, try: group <groupname>");
+            return;
+        }
+        if(!fs.groupadd(partes[1])){
+            System.out.println("Error: the group already exists");
+            return;
+        }
+
+    }
+    public void handleUsermod(String input){
+        String [] partes = input.split(" ");
+        if(partes.length !=3){
+            System.out.println("Error: unrecognized command, try: usermod <groupname>");
+            return;
+        }
+        if(!fs.usermod(partes[1],partes[2])){
+            System.out.println("Error: the group or username do not exists");
+            return;
+        }
+
+    }
+    public void handleMkdir(String input){
+        String [] partes = input.split(" ");
         if(partes.length <2){
             System.out.println("Error: unrecognized command, try: mkdir <name>");
             return;
@@ -141,15 +183,15 @@ public class Controller {
             fs.mkdir(partes[i]);
         }
     }
-    public void handleTouch(String [] partes){
-        if(partes.length >2){
+    public void handleTouch(String input){
+        String [] partes = input.split(" ");
+        if(partes.length !=2){
             System.out.println("Error: unrecognized command, try: touch <filename>");
             return;
         }
         
         fs.touch(partes[1]);
     }
-    
     public void handleLn(String[] partes){
         if(partes.length == 3){
             System.out.println("Error: unrecognized command, try: ln <filename> <path>");
@@ -166,16 +208,15 @@ public class Controller {
         }
         fs.chown(r? partes[2]:partes[1], r? partes[3]:partes[2], r);   
     }
-    
-    public void handleCD(String [] partes){
+    public void handleCD(String input){
+        String [] partes = input.split(" ");
         if(partes.length >2){
-            System.out.println("Error: unrecognized command, try: cd <directory>");
+            System.out.println("Error: unrecognized command, try: touch <filename>");
             return;
         }
         
         fs.cd(partes[1]);
     }
-    
     public void handleRM(String [] partes){
        boolean recursive = partes[1].toLowerCase().equals("-r");
        if((recursive && partes.length != 3)|| (!recursive && partes.length >2)){
@@ -214,9 +255,9 @@ public class Controller {
             return;
         }fs.closeFile(partes[1]);
     }
-    
-    public void handleFormat(String [] partes,String filename ){
+    public void handleFormat(String input,String filename ){
         try{
+            String [] partes = input.split(" ");
             if(partes.length != 2){
                 System.out.println("Error: unrecognized command, try: format <number>");
                 return;
@@ -285,12 +326,16 @@ public class Controller {
         return finalTxt.toString();
     }
 
-    public void handleNote(String [] partes){
-        /*if(partes.length != 2){
+    public void handleNote(String input){
+        String [] partes = input.split(" ");
+        if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: note <filename>");
             return;
-        }*/
-        //validar si el archivo existe
+        }
+        if(!fs.fileExist(partes[1])){
+            System.out.println("Erro: file not found");
+            return;
+        }
         System.out.println("-------------------------------------");
         System.out.println("filename:"+partes[1]+"          Exit = :q");
         System.out.println("-------------------------------------");
@@ -298,13 +343,18 @@ public class Controller {
         System.out.print("Save changes?(y/n)");
         String resp = scanner.nextLine().trim().toLowerCase();
         if(resp.equals("y")){
-            fs.writeFile(partes[1],content);
+            try {
+                fs.writeFile(partes[1],content);
+            } catch (Exception ex) {
+                System.getLogger(Controller.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
             System.out.println("Fie saved"); 
         }else{System.out.println("Dicarded changes");}
         
     }
 
-    public void handleUserAdd(String[] partes){
+    public void handleUserAdd(String input){
+        String [] partes = input.split(" ");
         if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: useradd <username>");
             return;
@@ -326,12 +376,14 @@ public class Controller {
             System.out.println("Error: passwords do not match.");
             return;
         }
-        fs.useradd(nombre+" "+apellidos, partes[1], password1);
+        fs.useradd(partes[1],nombre+" "+apellidos, password1);
+        
         System.out.println("User created successfully.");
         
         
     }
-    public void handlePasswd(String [] partes){
+    public void handlePasswd(String input){
+        String [] partes = input.split(" ");
         if(partes.length != 2){
             System.out.println("Error: unrecognized command, try: passwd <username>");
             return;
@@ -348,7 +400,8 @@ public class Controller {
         fs.passwd(partes[1], password2);
         
     }
-    public void handleSu(String [] partes){
+    public void handleSu(String input){
+        String [] partes = input.split(" ");
         if(partes.length >2){
             System.out.println("Error: unrecognized command, try: su <username>");
             return;
@@ -379,41 +432,5 @@ public class Controller {
             return null;
         }
     }
-    public String readPasswordMasked(String prompt) {
-        System.out.print(prompt);
-
-        StringBuilder password = new StringBuilder();
-
-        try {
-            while (true) {
-                int c = System.in.read();
-
-                // ENTER → finalizar
-                if (c == '\n' || c == '\r') {
-                    System.out.println();
-                    break;
-                }
-
-                // BACKSPACE → borrar
-                if (c == 8 || c == 127) {
-                    if (password.length() > 0) {
-                        password.deleteCharAt(password.length() - 1);
-                        System.out.print("\b \b"); // borra el *
-                    }
-                    continue;
-                }
-
-                // caracter normal
-                password.append((char) c);
-                System.out.print("*");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return password.toString();
-    }
-
-
 
 }

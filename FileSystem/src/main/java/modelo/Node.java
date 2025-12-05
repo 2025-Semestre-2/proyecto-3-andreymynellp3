@@ -1,3 +1,4 @@
+
 package modelo;
 
 import java.io.Serializable;
@@ -7,14 +8,16 @@ public abstract class Node implements Serializable {
     public String nombre;
     public Directory padre;
     public User owner;
-    public Integer permitions;
-    public Integer size = 0;
+    public Group group;
+    public int permissions;
+    
 
-    public Node(String nombre, Directory padre, User owner, Integer perm) {
+    public Node(String nombre, Directory padre,User owner,Group group,int permissions) {
         this.nombre = nombre;
         this.padre = padre;
         this.owner = owner;
-        this.permitions = perm;
+        this.group = group;
+        this.permissions = permissions;
     }
     public abstract boolean isDirectory();
     public String path(){

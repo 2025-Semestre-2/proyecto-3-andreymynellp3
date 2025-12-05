@@ -1,16 +1,16 @@
 package modelo;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 public class FileControlBlock extends Node {
-    private static final long serialVersionUID = 1L;
     public Block startblock;
     public LocalDateTime createdAt;
     public boolean open = false;
-    public int sizeFile =0;
+    public int size =0;
     
-    public FileControlBlock(String name, User owner, int permitions, Block startblock, Directory father) {
-        super(name,father,owner, permitions);
+    public FileControlBlock(String name, User owner, Group group, int permitions, Block startblock, Directory father) {
+        super(name,father,owner,group,permitions);
         this.startblock = startblock;
         this.createdAt = LocalDateTime.now();
     }

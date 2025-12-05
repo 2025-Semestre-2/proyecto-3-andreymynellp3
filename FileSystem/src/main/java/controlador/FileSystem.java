@@ -28,6 +28,7 @@ public class FileSystem implements Serializable {
     private Directory nowDirectory ;
     private String nowUser = "root";
     private Map<String, User> users = new HashMap<>();
+    private Map<String, Group> groups = new HashMap<>();
     
     public FileSystem() {
     }
@@ -39,39 +40,40 @@ public class FileSystem implements Serializable {
         superblock = new SuperBlock();
         superblock.blocksize = blockSize;
         superblock.numblocks = numBlocks;
-        superblock.struArea = 0;
-        superblock.userArea = diskSize;
-
+ 
+        
+        //revisar lo de los bloques
         blocks.clear();
 
-        // Creamos la free list como una lista enlazada de Block; poner todos los bloques y enlazarlos
         Block first = null;
         Block prev = null;
         for (int i = 0; i < numBlocks; i++) {
-            Block b = new Block();
-            b.data = new ArrayList<>();
-            b.next = null;
-            blocks.put(i, b);    // guardamos cada bloque por índice
+            Block b = new Block(blockSize);
+            
+            blocks.put(i, b);    
             if (first == null) first = b;
             if (prev != null) {
-                prev.next = b;   // prev -> b
+                prev.next = b;   
             }
             prev = b;
         }
-        superblock.freeblocks = first; // head de la lista libre
-
-        // nodo raiz
-        root = new Directory("/", null,null,0);
-        nowDirectory = root;
-        superblock.rootDirNode = root;
-
+        superblock.freeblocks = first; 
+        
+        Group rootGroup = new Group("root");
+        groups.put("root", rootGroup); 
         // usuario root
         User rootUser = new User();
         rootUser.username = "root";
         rootUser.fullname = "Super Usuario";
         rootUser.password = rootPassword;
+        
+        rootGroup.addUser(rootUser);
+        // nodo raiz
+        root = new Directory("/", null,rootUser,rootGroup,77);
+        nowDirectory = root;
+        superblock.rootDirNode = root;
 
-        Directory rootHome = new Directory("root", root,rootUser,70);
+        Directory rootHome = new Directory("root", root,rootUser,rootGroup,77);
         root.addChild(rootHome);
         rootUser.home = rootHome;
         users.put(rootUser.username, rootUser);
@@ -82,15 +84,91 @@ public class FileSystem implements Serializable {
     }
 
 
-    //pendiente de implementar de manera correcta (linked)
-    public void writeFile(String fsFile, String content) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("miDiscoDuro.fs", false))) {
-            writer.write(content);  
-        } catch (IOException e) {
-            System.out.println("Error guardando en el FS: " + e.getMessage());
-        }
+    /*
+    =====================================================
+    ALLOCATION
+    =====================================================
+    */
+    public Block asigBloque(){
+        Block free = superblock.freeblocks;
+        if(free == null) return null;
+        superblock.freeblocks = free.next;
+        free.free = false;
+        free.next = null;
+        return free;
     }
-    // COMANDOS
+    public void liberarBlock(Block b){
+        b.free = true;
+        b.next = superblock.freeblocks;
+        superblock.freeblocks = b;
+    }
+    public boolean fileExist(String filename){
+        Node n = nowDirectory.findChild(filename);
+       
+        if(n ==null || n.isDirectory()){
+            return false;
+        }
+        return true;
+        
+    }
+    public void writeFile(String filename, String content) throws Exception {
+        Node n = nowDirectory.findChild(filename);
+        if(n ==null || n.isDirectory()){
+            throw new Exception("Erro: File not found");
+        }
+        FileControlBlock fcb = (FileControlBlock) n;
+        //liberar
+        Block actual = fcb.startblock;
+        while (actual != null) {
+            Block next = actual.next;
+            liberarBlock(actual);
+            actual = next;
+        }
+        byte[] bytes = content.getBytes();
+        int blockSize = superblock.blocksize;
+
+        Block prev = null;
+        int offset = 0;
+        
+        while(offset < bytes.length){
+            Block nuevo = asigBloque();
+            if (nuevo == null)
+                throw new Exception("Error: there is no space in the disc");
+
+            int length = Math.min(blockSize, bytes.length - offset);
+            System.arraycopy(bytes, offset, nuevo.data, 0, length);
+            offset += length;
+
+            if (prev == null)
+                fcb.startblock = nuevo;
+            else
+                prev.next = nuevo;
+
+            prev = nuevo;
+        }
+        fcb.size = bytes.length;
+        
+    }
+    public String readFile(String filename) throws Exception {
+        Node n = nowDirectory.findChild(filename);
+        if(n ==null || n.isDirectory()){
+            throw new Exception("Erro: File not found");
+        }
+        FileControlBlock fcb = (FileControlBlock) n;
+        
+        Block actual = fcb.startblock;
+        StringBuilder sb = new StringBuilder();
+        while(actual != null){
+            sb.append(new String(actual.data));
+            actual = actual.next;
+        }
+        return sb.toString().trim();
+    }
+    /*
+    =====================================================
+    COMANDOS
+    =====================================================
+    */
     public void mkdir(String name) {
         if (nowDirectory == null) {
             System.out.println("Directorio actual inválido.");
@@ -100,12 +178,13 @@ public class FileSystem implements Serializable {
             System.out.println("Ya existe: " + name);
             return;
         }
-        Directory d = new Directory(name, nowDirectory,users.get(nowUser), 77);
+        User u = users.get(nowUser);
+        Group g = groups.get(u.username);
+        Directory d = new Directory(name, nowDirectory,u,g,77);
         nowDirectory.addChild(d);
         System.out.println("Directorio creado: " + name);
         
     }
-    
     public void rm(String filename, boolean r){
         Node n = nowDirectory.findChild(filename);
         if(n != null){
@@ -140,7 +219,10 @@ public class FileSystem implements Serializable {
             System.out.println("Error: Ya existe un nodo con ese nombre: " + filename);
             return;
         }
-        FileControlBlock fcb = new FileControlBlock(filename,users.get(nowUser),77,null, nowDirectory); //Implementar poner nodo libre
+        User u = users.get(nowUser);
+        Group g = groups.get(u.username);
+        
+        FileControlBlock fcb = new FileControlBlock(filename,u,g,77,null, nowDirectory); //Implementar poner nodo libre
         nowDirectory.addChild(fcb);
 
         System.out.println("Archivo creado: " + filename);
@@ -160,7 +242,6 @@ public class FileSystem implements Serializable {
         }
         return false;
     }
-    
     public Node nodeOnPath(Node n, String[] path){
         if (path[0]== null || n == null){
             return null;
@@ -173,8 +254,6 @@ public class FileSystem implements Serializable {
         }
         return null;
     }
-    
-    
     
     public void ls(boolean r){
         System.out.println(nowDirectory.nombre);
@@ -190,7 +269,6 @@ public class FileSystem implements Serializable {
         }
     }
     public String pwd() { return nowDirectory.path(); }
-    
     public String whereIs(String target){
         Node search = searchDFS(nowDirectory, target);
         return search != null ? search.path() : null;
@@ -230,24 +308,77 @@ public class FileSystem implements Serializable {
         Node n = nodeOnPath(root.padre, Arrays.copyOfRange(partes, 1, partes.length));
         if(n!= null && !n.isDirectory()){
             FileControlBlock temp = (FileControlBlock)n;
-            FileControlBlock node = new FileControlBlock(name, temp.owner, temp.permitions, temp.startblock, nowDirectory);
+            FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
             nowDirectory.addChild(node);
         }
     }
+    public void chown(String username, String filename, boolean r){
+        User u = users.get(username);
+        if(u != null){
+            Node n = nowDirectory.findChild(filename);
+            if(n != null){
+                n.owner = u;
+                if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
+            }
+        }
+    }
     
-    //User Manager 
+    public void recursiveChown(Directory n, User u){
+        for(Node node : n.childs){
+            node.owner = u;
+            if (n.isDirectory()) {recursiveChown((Directory)node,u);}
+        }
+    }
+    
+    /*
+    =====================================================
+    GRUPOS
+    =====================================================
+    */
+    public boolean groupadd(String groupName) {
+        if (groups.containsKey(groupName)) {
+            System.out.println("El grupo ya existe.");
+            return false;
+        }
+        groups.put(groupName, new Group(groupName));
+        return true;
+    }
+    public boolean usermod(String username, String groupname){
+        User u = users.get(username);
+        Group g = groups.get(groupname);
+
+        if (u == null || g == null ) {
+            return false;
+        }
+        g.addUser(u);
+        return true;
+        
+    }
+    
+    /*
+    =====================================================
+    USUARIOS
+    =====================================================
+    */ 
+    
     public void useradd(String username, String fullname, String pass1) {
         User u = new User();
         u.username = username;
         u.fullname = fullname;
         u.password = pass1;
         users.put(u.username, u);
+        
+        Group g = new Group(username);
+        g.addUser(u);
+        groups.put(username, g);
 
-        Directory home = new Directory(username,root, u, 70);
+        Directory home = new Directory(username,root,u,g,70);
         root.addChild(home);
         u.home = home;
-        users.put(username, u);
+       
+        
     }
+    
     
     public boolean changeUser (String username, String password){ 
         if(!userExists(username)){
@@ -288,25 +419,6 @@ public class FileSystem implements Serializable {
     public void logout(){
         nowUser = "root";
     }
-    
-    public void chown(String username, String filename, boolean r){
-        User u = users.get(username);
-        if(u != null){
-            Node n = nowDirectory.findChild(filename);
-            if(n != null){
-                n.owner = u;
-                if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
-            }
-        }
-    }
-    
-    public void recursiveChown(Directory n, User u){
-        for(Node node : n.childs){
-            node.owner = u;
-            if (n.isDirectory()) {recursiveChown((Directory)node,u);}
-        }
-    }
-    
     public boolean isLogget(){
         return nowUser.equals("root");
     }
