@@ -337,7 +337,6 @@ public class FileSystem implements Serializable {
     */
     public boolean groupadd(String groupName) {
         if (groups.containsKey(groupName)) {
-            System.out.println("El grupo ya existe.");
             return false;
         }
         groups.put(groupName, new Group(groupName));
@@ -353,6 +352,30 @@ public class FileSystem implements Serializable {
         g.addUser(u);
         return true;
         
+    }
+    public void chgrp(String groupname,String recursive,String target){
+        Group g = groups.get(groupname);
+        if(g==null){
+            System.out.println("Error: the group doesnt exist");
+        }
+        Node t = nowDirectory.findChild(target);
+        if(t==null){
+            System.out.println("Error: the"+target+" doesnt exist");
+        }
+        t.group=g;
+        if(recursive.contains("-R")&& t.isDirectory()){
+            chgrpRecurvise((Directory) t,g);
+        }
+        System.out.println("Group changed: "+target+"->"+groupname);
+        
+    }
+    public void chgrpRecurvise(Directory d, Group g){
+        for(Node n: d.childs){
+            n.group = g;
+            if(n.isDirectory()){
+                chgrpRecurvise((Directory) n,g);
+            }
+        }
     }
     
     /*

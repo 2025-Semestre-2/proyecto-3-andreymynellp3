@@ -65,10 +65,10 @@ public class Controller {
                 handlePasswd(input);
                 break;
             case "groupadd":
-                handleGroupadd(input);
+                handleGroupadd(partes);
                 break;
             case "usermod":
-                handleUsermod(input);
+                handleUsermod(partes);
                 break;
             case "su":
                 handleSu(input);
@@ -80,7 +80,7 @@ public class Controller {
                 System.out.println(fs.pwd());
                 break;
             case "mkdir":
-                handleMkdir(input);
+                handleMkdir(partes);
                 break;
             case "rm":
                 handleRM(partes);
@@ -104,15 +104,16 @@ public class Controller {
                 handleLn(partes);
                 break;
             case "touch":
-                handleTouch(input);
+                handleTouch(partes);
                 break;
             case "cat":
-                handleCat(input);
+                handleCat(partes);
                 break;
             case "chown":
                 handleChown(partes);
                 break;
-            case "chgrp": //< Andrey
+            case "chgrp": 
+                handleChgrp(input);
                 break;
             case "chmod": //< 
                 break;
@@ -134,9 +135,21 @@ public class Controller {
                 System.out.println("Error: unrecognized command.");
         }
     }
-    public void handleCat(String input){
+    public void handleChgrp(String input){
+        String [] partes = input.split(" ");
+        if(partes.length >4){
+            System.out.println("Error: unrecognized command, try: chgrp groupname filename <optional:-R> <filename or directory>");
+            return;
+        }
+        if(input.contains("-R")){
+            fs.chgrp(partes[1],partes[2],partes[3]);
+        }else{
+            fs.chgrp(partes[1],"",partes[3]);
+        }
+        
+    }
+    public void handleCat(String[] partes){
         try {
-            String [] partes = input.split(" ");
             if(partes.length !=2){
                 System.out.println("Error: unrecognized command, try: cat <filename>");
                 return;
@@ -148,8 +161,7 @@ public class Controller {
         }
 
     }
-    public void handleGroupadd(String input){
-        String [] partes = input.split(" ");
+    public void handleGroupadd(String[] partes){
         if(partes.length !=2){
             System.out.println("Error: unrecognized command, try: group <groupname>");
             return;
@@ -160,20 +172,18 @@ public class Controller {
         }
 
     }
-    public void handleUsermod(String input){
-        String [] partes = input.split(" ");
+    public void handleUsermod(String[] partes){
         if(partes.length !=3){
             System.out.println("Error: unrecognized command, try: usermod <groupname>");
             return;
         }
         if(!fs.usermod(partes[1],partes[2])){
-            System.out.println("Error: the group or username do not exists");
+            System.out.println("Error: the group or username does not exists");
             return;
         }
 
     }
-    public void handleMkdir(String input){
-        String [] partes = input.split(" ");
+    public void handleMkdir(String[] partes){
         if(partes.length <2){
             System.out.println("Error: unrecognized command, try: mkdir <name>");
             return;
@@ -183,8 +193,7 @@ public class Controller {
             fs.mkdir(partes[i]);
         }
     }
-    public void handleTouch(String input){
-        String [] partes = input.split(" ");
+    public void handleTouch(String[] partes){
         if(partes.length !=2){
             System.out.println("Error: unrecognized command, try: touch <filename>");
             return;
