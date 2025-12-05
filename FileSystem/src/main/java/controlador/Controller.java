@@ -90,7 +90,7 @@ public class Controller {
             case "mv":
                 handleMV(partes);
                 break;
-            case "ls": //<
+            case "ls": 
                 fs.ls(partes.length == 3);
                 break;
             case "clear":
@@ -99,27 +99,28 @@ public class Controller {
             case "cd":
                 handleCD(partes);
                 break;
-            case "whereis": //<
+            case "whereis":
                 handleWhereIs(partes);
                 break;
-            case "ln": //<
+            case "ln":
+                handleLn(partes);
                 break;
             case "touch":
                 handleTouch(partes);
                 break;
             case "cat": //<
                 break;
-            case "chown": //<
+            case "chown":
                 handleChown(partes);
                 break;
             case "chgrp": //< Andrey
                 break;
             case "chmod": //<
                 break;
-            case "openFile": //<
+            case "openFile":
                 handleOpenFile(partes);
                 break;
-            case "closeFile": //<
+            case "closeFile":
                 handleCloseFile(partes);
                 break; 
             case "viewFCB": //<
@@ -147,6 +148,14 @@ public class Controller {
         }
         
         fs.touch(partes[1]);
+    }
+    
+    public void handleLn(String[] partes){
+        if(partes.length == 3){
+            System.out.println("Error: unrecognized command, try: ln <filename> <path>");
+            return;
+        }
+        fs.ln(partes[1], partes[2]);
     }
     
     public void handleChown(String []partes){

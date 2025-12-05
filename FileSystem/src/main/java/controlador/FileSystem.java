@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import modelo.Block;
@@ -159,6 +160,22 @@ public class FileSystem implements Serializable {
         }
         return false;
     }
+    
+    public Node nodeOnPath(Node n, String[] path){
+        if (path[0]== null || n == null){
+            return null;
+        }
+        if(path[0].equals(n.nombre)){
+            return n;
+        }
+        if (n.isDirectory()){
+            return nodeOnPath(((Directory)n).findChild(path[0]),Arrays.copyOfRange(path, 1, path.length));
+        }
+        return null;
+    }
+    
+    
+    
     public void ls(boolean r){
         System.out.println(nowDirectory.nombre);
         for(Node n : nowDirectory.childs){
@@ -205,6 +222,16 @@ public class FileSystem implements Serializable {
         Node c = nowDirectory.findChild(n);
         if(c != null && !c.isDirectory()){
             ((FileControlBlock)c).open = false;
+        }
+    }
+    
+    public void ln(String name, String path){
+        String[] partes = path.split("/");
+        Node n = nodeOnPath(root.padre, Arrays.copyOfRange(partes, 1, partes.length));
+        if(n!= null && !n.isDirectory()){
+            FileControlBlock temp = (FileControlBlock)n;
+            FileControlBlock node = new FileControlBlock(name, temp.owner, temp.permitions, temp.startblock, nowDirectory);
+            nowDirectory.addChild(node);
         }
     }
     
