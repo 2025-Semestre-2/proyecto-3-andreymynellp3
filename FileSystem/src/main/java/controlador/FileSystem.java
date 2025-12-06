@@ -23,8 +23,6 @@ public class FileSystem implements Serializable {
     private static final long serialVersionUID = 1L;
     
     private SuperBlock superblock;
-    private Map<Integer, Block> blocks = new HashMap<>();
-    private Directory root; // "/"
     private Directory nowDirectory ;
     private String nowUser = "root";
     private Map<String, User> users = new HashMap<>();
@@ -40,17 +38,12 @@ public class FileSystem implements Serializable {
         superblock = new SuperBlock();
         superblock.blocksize = blockSize;
         superblock.numblocks = numBlocks;
- 
-        
-        //revisar lo de los bloques
-        blocks.clear();
+        superblock.remainingblocks = numBlocks;
 
         Block first = null;
         Block prev = null;
         for (int i = 0; i < numBlocks; i++) {
-            Block b = new Block(blockSize);
-            
-            blocks.put(i, b);    
+            Block b = new Block(blockSize);  
             if (first == null) first = b;
             if (prev != null) {
                 prev.next = b;   
@@ -69,7 +62,7 @@ public class FileSystem implements Serializable {
         
         rootGroup.addUser(rootUser);
         // nodo raiz
-        root = new Directory("/", null,rootUser,rootGroup,77);
+        Directory root = new Directory("/", null,rootUser,rootGroup,77);
         nowDirectory = root;
         superblock.rootDirNode = root;
 
@@ -95,16 +88,17 @@ public class FileSystem implements Serializable {
         superblock.freeblocks = free.next;
         free.free = false;
         free.next = null;
+        superblock.remainingblocks--;
         return free;
     }
     public void liberarBlock(Block b){
         b.free = true;
         b.next = superblock.freeblocks;
         superblock.freeblocks = b;
+        superblock.remainingblocks++;
     }
     public boolean fileExist(String filename){
         Node n = nowDirectory.findChild(filename);
-       
         return !(n ==null || n.isDirectory());
         
     }
@@ -254,9 +248,9 @@ public class FileSystem implements Serializable {
     
     public void infoFS(){
         System.out.println("Nombre del FileSystem: myFs");
-        System.out.println("Tamaño: "+ superblock.blocksize*superblock.numblocks+" bytes");
-        System.out.println("Espacio utilizado: "+ superblock.blocksize*root.size+" bytes");
-        System.out.println("Disponible: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*root.size)+" bytes");
+        System.out.println("Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
+        System.out.println("Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
+        System.out.println("Disponible: "+ superblock.blocksize*superblock.remainingblocks+" MB");
     }
     
     public void viewFCB(String filename){
@@ -322,7 +316,7 @@ public class FileSystem implements Serializable {
     
     public void ln(String name, String path){
         String[] partes = path.split("/");
-        Node n = nodeOnPath(root.padre, Arrays.copyOfRange(partes, 1, partes.length));
+        Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
         if(n!= null && !n.isDirectory()){
             FileControlBlock temp = (FileControlBlock)n;
             FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
@@ -412,8 +406,8 @@ public class FileSystem implements Serializable {
         g.addUser(u);
         groups.put(username, g);
 
-        Directory home = new Directory(username,root,u,g,70);
-        root.addChild(home);
+        Directory home = new Directory(username,superblock.rootDirNode,u,g,70);
+        superblock.rootDirNode.addChild(home);
         u.home = home;
        
         
