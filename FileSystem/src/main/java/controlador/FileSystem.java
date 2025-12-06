@@ -31,7 +31,8 @@ public class FileSystem implements Serializable {
     public FileSystem() {
     }
     
-    public void format(int diskSize, String rootPassword, int blockSize, String filename) throws Exception {
+    public void format(int disk, String rootPassword, int blockSize, String filename) throws Exception {
+        int diskSize = (int) (disk*0.95);
         int numBlocks = diskSize / blockSize;
         if (numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
 
@@ -39,6 +40,7 @@ public class FileSystem implements Serializable {
         superblock.blocksize = blockSize;
         superblock.numblocks = numBlocks;
         superblock.remainingblocks = numBlocks;
+        superblock.maxStructures = disk-diskSize +(diskSize - (numBlocks*blockSize));
 
         Block first = null;
         Block prev = null;

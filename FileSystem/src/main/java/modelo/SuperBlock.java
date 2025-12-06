@@ -7,6 +7,8 @@ public class SuperBlock implements Serializable{
     private static final long serialVersionUID = 1L;
     public Integer blocksize;
     public Integer numblocks;
+    public Integer remainingblocks;
+    public Integer numStructures = 0;
     
     public Block freeblocks;
     public Directory rootDirNode;
@@ -16,7 +18,6 @@ public class SuperBlock implements Serializable{
     public SuperBlock(int blocksize, int numblocks) {
         this.blocksize = blocksize;
         this.numblocks = numblocks;
-
     }
 
     public int getBlocksize() {
