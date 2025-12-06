@@ -116,10 +116,16 @@ public class FileSystem implements Serializable {
     }
     
     public boolean permissionsCheck(Node file, int type){
-        Integer ownerperm = Integer.valueOf(file.permissions.toString().charAt(0));
-        Integer userperm = Integer.valueOf(file.permissions.toString().charAt(1));
+        
+        Integer userperm = Integer.valueOf(file.permissions.toString().charAt(0));
+        Integer groupperm = Integer.valueOf(file.permissions.toString().charAt(1));
         User u = users.get(nowUser);
-        return  !((file.owner == u && ownerperm<type)||(!(file.owner == u) && userperm<type));
+   
+        if(file.owner ==u){
+            return userperm>=type;
+        }
+        return groupperm>=type;
+        //return  !((file.owner == u && ownerperm<type)||(!(file.owner == u) && userperm<type));
     }
     
     public void writeFile(String filename, String content) throws Exception {
@@ -211,7 +217,8 @@ public class FileSystem implements Serializable {
     public void rm(String filename, boolean r){
         Node n = nowDirectory.findChild(filename);
         if(n != null){
-            if(permissionsCheck(n,4)){
+            //ocupa permisos de escritura y ejecucion
+            if(!permissionsCheck(n,3)){
                 System.out.println("Error: You dont have permissions to delete this file");
                 return;
             }
