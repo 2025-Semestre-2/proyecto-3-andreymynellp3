@@ -9,7 +9,7 @@ public abstract class Node implements Serializable {
     public Directory padre;
     public User owner;
     public Group group;
-    public int permissions;
+    public Integer permissions;
 
     public Node(String nombre, Directory padre,User owner,Group group,int permissions) {
         this.nombre = nombre;
