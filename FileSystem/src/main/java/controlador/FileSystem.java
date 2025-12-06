@@ -25,6 +25,7 @@ public class FileSystem implements Serializable {
     private SuperBlock superblock;
     private Directory nowDirectory ;
     private String nowUser = "root";
+    private String nowDir = "/";
     private Map<String, User> users = new HashMap<>();
     private Map<String, Group> groups = new HashMap<>();
     private String Userfilename;
@@ -33,6 +34,7 @@ public class FileSystem implements Serializable {
     }
     
     public void format(int disk, String rootPassword, int blockSize, String filename) throws Exception {
+        this.Userfilename = filename;
         int diskSize = (int) (disk*0.95);
         int numBlocks = diskSize / blockSize;
         if (numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
@@ -275,6 +277,7 @@ public class FileSystem implements Serializable {
         Node n = nowDirectory.findChild(directorio); //Pendiente aplicar recursivo
         if(n!=null && n.isDirectory()){
             nowDirectory = (Directory)n;
+            nowDir = "/"+directorio;
             return true;
         }
         return false;
@@ -421,17 +424,19 @@ public class FileSystem implements Serializable {
     GRUPOS
     =====================================================
     */
-    public boolean groupadd(String groupName) {
-        if (superblock.numStructures>= superblock.maxStructures){
-            return false;
+    public void groupadd(String groupName) {
+        if (!nowUser.equals("root")) {
+            System.out.println("Error: only root can create groups");
+            return;
         }
         if (groups.containsKey(groupName)) {
-            return false;
+            System.out.println("Error: the group already exists");
+            return;
         }
         groups.put(groupName, new Group(groupName));
         superblock.numStructures++;
         save();
-        return true;
+       
     }
     public boolean usermod(String username, String groupname){
         User u = users.get(username);
@@ -533,6 +538,9 @@ public class FileSystem implements Serializable {
     }
     public String getCurrentUser(){
         return this.nowUser;
+    }
+    public String getCurrentDir(){
+        return this.nowDir;
     }
     public void logout(){
         nowUser = "root";
