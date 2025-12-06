@@ -27,7 +27,8 @@ public class FileSystem implements Serializable {
     private String nowUser = "root";
     private Map<String, User> users = new HashMap<>();
     private Map<String, Group> groups = new HashMap<>();
-    
+    private String Userfilename;
+
     public FileSystem() {
     }
     
@@ -84,6 +85,13 @@ public class FileSystem implements Serializable {
     ALLOCATION
     =====================================================
     */
+   public void save() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(Userfilename))) {
+            oos.writeObject(this);
+        } catch (Exception e) {
+            System.out.println("Error: trying to save the file " + e.getMessage());
+        }
+    }
     public Block asigBloque(){
         Block free = superblock.freeblocks;
         if(free == null) return null;
@@ -195,6 +203,7 @@ public class FileSystem implements Serializable {
         nowDirectory.addChild(d);
         superblock.numStructures++;
         System.out.println("Directorio creado: " + name);
+        save();
         
     }
     public void rm(String filename, boolean r){
@@ -212,6 +221,7 @@ public class FileSystem implements Serializable {
                     nowDirectory.childs.addAll(((Directory)n).childs);
                 }
                 nowDirectory.removeChild(n);
+                save();
             }
             superblock.numStructures--;
         }
@@ -227,6 +237,7 @@ public class FileSystem implements Serializable {
                 }
                 ((Directory)dir).addChild(file);
                 nowDirectory.removeChild(file);
+                save();
             }
         }
     }
@@ -250,7 +261,7 @@ public class FileSystem implements Serializable {
         FileControlBlock fcb = new FileControlBlock(filename,u,g,77,null, nowDirectory); //Implementar poner nodo libre
         nowDirectory.addChild(fcb);
         superblock.numStructures++;
-
+        save();
         System.out.println("Archivo creado: " + filename);
     }
     public boolean cd(String directorio){
@@ -401,6 +412,7 @@ public class FileSystem implements Serializable {
             System.out.println("Error: only the owner or root are alloed to make changes");
         }
         n.permissions = permUser *10+permGr;
+        save();
         System.out.println("Updated permissions: "+filename+" -> "+n.permissions);
     }
     
@@ -418,6 +430,7 @@ public class FileSystem implements Serializable {
         }
         groups.put(groupName, new Group(groupName));
         superblock.numStructures++;
+        save();
         return true;
     }
     public boolean usermod(String username, String groupname){
@@ -481,6 +494,7 @@ public class FileSystem implements Serializable {
         superblock.rootDirNode.addChild(home);
         u.home = home;
         superblock.numStructures++;
+        save();
     }
     
     
