@@ -163,6 +163,10 @@ public class FileSystem implements Serializable {
     =====================================================
     */
     public void mkdir(String name) {
+        if (superblock.numStructures>= superblock.maxStructures){
+            System.out.println("No hay espacio para nuevas estructuras.");
+            return;
+        }
         if (nowDirectory == null) {
             System.out.println("Directorio actual inválido.");
             return;
@@ -175,6 +179,7 @@ public class FileSystem implements Serializable {
         Group g = groups.get(u.username);
         Directory d = new Directory(name, nowDirectory,u,g,77);
         nowDirectory.addChild(d);
+        superblock.numStructures++;
         System.out.println("Directorio creado: " + name);
         
     }
@@ -190,6 +195,7 @@ public class FileSystem implements Serializable {
                 }
                 nowDirectory.removeChild(n);
             }
+            superblock.numStructures--;
         }
     }
     public void mv(String filename, String directory){
@@ -204,6 +210,10 @@ public class FileSystem implements Serializable {
     }
     
     public void touch(String filename) {
+        if (superblock.numStructures>= superblock.maxStructures){
+            System.out.println("Error: No hay espacio suficiente para una nueva estructura.");
+            return;
+        }
         if (nowDirectory == null) {
             System.out.println("Error: directorio actual inválido.");
             return;
@@ -217,6 +227,7 @@ public class FileSystem implements Serializable {
         
         FileControlBlock fcb = new FileControlBlock(filename,u,g,77,null, nowDirectory); //Implementar poner nodo libre
         nowDirectory.addChild(fcb);
+        superblock.numStructures++;
 
         System.out.println("Archivo creado: " + filename);
     }
@@ -361,10 +372,14 @@ public class FileSystem implements Serializable {
     =====================================================
     */
     public boolean groupadd(String groupName) {
+        if (superblock.numStructures>= superblock.maxStructures){
+            return false;
+        }
         if (groups.containsKey(groupName)) {
             return false;
         }
         groups.put(groupName, new Group(groupName));
+        superblock.numStructures++;
         return true;
     }
     public boolean usermod(String username, String groupname){
@@ -410,6 +425,10 @@ public class FileSystem implements Serializable {
     */ 
     
     public void useradd(String username, String fullname, String pass1) {
+        if (superblock.numStructures>= superblock.maxStructures){
+            System.out.println("Error: No hay espacio para nuevas estructuras.");
+            return;
+        }
         User u = new User();
         u.username = username;
         u.fullname = fullname;
@@ -423,8 +442,7 @@ public class FileSystem implements Serializable {
         Directory home = new Directory(username,superblock.rootDirNode,u,g,70);
         superblock.rootDirNode.addChild(home);
         u.home = home;
-       
-        
+        superblock.numStructures++;
     }
     
     

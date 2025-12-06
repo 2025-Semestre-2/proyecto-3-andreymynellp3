@@ -8,6 +8,7 @@ public class SuperBlock implements Serializable{
     public Integer blocksize;
     public Integer numblocks;
     public Integer remainingblocks;
+    public Integer maxStructures;
     public Integer numStructures = 0;
     
     public Block freeblocks;
