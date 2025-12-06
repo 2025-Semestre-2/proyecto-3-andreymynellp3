@@ -268,18 +268,19 @@ public class FileSystem implements Serializable {
     }
     public void cd(String directorio){
         if(directorio.equals("..")){
+            if(nowDirectory.getNombre().equals(nowUser)){
+                nowDir ="/";
+                return;
+            }
             if(nowDirectory.padre != null){
                 nowDirectory = nowDirectory.padre;
                 if(nowDirectory.getNombre().equals(nowUser)){
                     nowDir ="/";
-                    return;
-                }
-                if( nowDirectory.getNombre().equals("/")){
-                    nowDir ="/";
-                    return;
-                }
                 
-                nowDir = "/"+nowDirectory.getNombre();
+                }
+                else{
+                   nowDir = "/"+nowDirectory.getNombre(); 
+                }
                 return;
             }
             System.out.println("Error: the path does not exist");
