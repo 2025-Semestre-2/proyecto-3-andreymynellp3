@@ -124,9 +124,11 @@ public class Controller {
             case "closeFile":
                 handleCloseFile(partes);
                 break; 
-            case "viewFCB": //<
+            case "viewFCB": 
+                handleViewFCB(partes);
                 break;
-            case "infoFS": //<
+            case "infoFS": 
+                fs.infoFS();
                 break;
             case "note":
                 handleNote(input);
@@ -162,6 +164,13 @@ public class Controller {
             fs.chgrp(partes[1],"",partes[3]);
         }
         
+    }
+    public void handleViewFCB(String[] partes){
+        if(partes.length != 2){
+            System.out.println("Error: unrecognized command, try: viewFCB <filename>");
+            return;
+        }
+        fs.viewFCB(partes[1]);
     }
     public void handleCat(String[] partes){
         try {

@@ -266,21 +266,33 @@ public class FileSystem implements Serializable {
         save();
         System.out.println("Archivo creado: " + filename);
     }
-    public boolean cd(String directorio){
+    public void cd(String directorio){
         if(directorio.equals("..")){
             if(nowDirectory.padre != null){
                 nowDirectory = nowDirectory.padre;
-                return true;
+                if(nowDirectory.getNombre().equals(nowUser)){
+                    nowDir ="/";
+                    return;
+                }
+                if( nowDirectory.getNombre().equals("/")){
+                    nowDir ="/";
+                    return;
+                }
+                
+                nowDir = "/"+nowDirectory.getNombre();
+                return;
             }
-            return false;
+            System.out.println("Error: the path does not exist");
+            return;
         }
         Node n = nowDirectory.findChild(directorio); //Pendiente aplicar recursivo
         if(n!=null && n.isDirectory()){
             nowDirectory = (Directory)n;
             nowDir = "/"+directorio;
-            return true;
+            return;
         }
-        return false;
+        System.out.println("Error: the path does not exist");
+        return;
     }
     public Node nodeOnPath(Node n, String[] path){
         if (path[0]== null || n == null){

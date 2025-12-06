@@ -28,5 +28,8 @@ public abstract class Node implements Serializable {
         }
         return padre.path() + "/" + nombre;
     }
+    public String getNombre(){
+        return nombre;
+    }
     
 }
