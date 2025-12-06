@@ -104,10 +104,21 @@ public class FileSystem implements Serializable {
         return !(n ==null || n.isDirectory());
         
     }
+    
+    public boolean permissionsCheck(Node file, int type){
+        Integer ownerperm = Integer.valueOf(file.permissions.toString().charAt(0));
+        Integer userperm = Integer.valueOf(file.permissions.toString().charAt(1));
+        User u = users.get(nowUser);
+        return  !((file.owner == u && ownerperm<type)||(!(file.owner == u) && userperm<type));
+    }
+    
     public void writeFile(String filename, String content) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
             throw new Exception("Error: File not found");
+        }
+        if(permissionsCheck(n,2)){
+            throw new Exception("Error: You dont have permissions to write this file");
         }
         FileControlBlock fcb = (FileControlBlock) n;
         //liberar
@@ -145,7 +156,10 @@ public class FileSystem implements Serializable {
     public String readFile(String filename) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception("Erro: File not found");
+            throw new Exception("Error: File not found");
+        }
+        if(permissionsCheck(n,4)){
+            throw new Exception("Error: You dont have permissions to see this file");
         }
         FileControlBlock fcb = (FileControlBlock) n;
         
@@ -186,6 +200,10 @@ public class FileSystem implements Serializable {
     public void rm(String filename, boolean r){
         Node n = nowDirectory.findChild(filename);
         if(n != null){
+            if(permissionsCheck(n,4)){
+                System.out.println("Error: You dont have permissions to delete this file");
+                return;
+            }
             if(r){
                 nowDirectory.removeChild(n);
             }
@@ -203,6 +221,10 @@ public class FileSystem implements Serializable {
         Node dir = nowDirectory.findChild(directory);
         if (file != null && dir != null){
             if (dir.isDirectory()){
+                if(permissionsCheck(file,1)){
+                    System.out.println("Error: You dont have permissions to see this file");
+                    return;
+                }
                 ((Directory)dir).addChild(file);
                 nowDirectory.removeChild(file);
             }
@@ -269,6 +291,10 @@ public class FileSystem implements Serializable {
     public void viewFCB(String filename){
         Node n = nowDirectory.findChild(filename);
         if (!n.isDirectory()){
+            if(permissionsCheck(n,1)){
+                System.out.println("Error: You dont have permissions to execute this file");
+                return;
+            }
             FileControlBlock temp = (FileControlBlock)n;
             System.out.println("Nombre: "+temp.nombre);
             System.out.println("Dueño: "+temp.owner.username);
@@ -316,6 +342,10 @@ public class FileSystem implements Serializable {
     public void openFile(String n){
         Node c = nowDirectory.findChild(n);
         if(c != null && !c.isDirectory()){
+            if(permissionsCheck(c,1)){
+                System.out.println("Error: You dont have permissions to see this file");
+                return;
+            }
             ((FileControlBlock)c).open = true;
         }
     }
@@ -323,6 +353,10 @@ public class FileSystem implements Serializable {
     public void closeFile(String n){
         Node c = nowDirectory.findChild(n);
         if(c != null && !c.isDirectory()){
+            if(permissionsCheck(c,1)){
+                System.out.println("Error: You dont have permissions to see this file");
+                return;
+            }
             ((FileControlBlock)c).open = false;
         }
     }
@@ -331,6 +365,10 @@ public class FileSystem implements Serializable {
         String[] partes = path.split("/");
         Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
         if(n!= null && !n.isDirectory()){
+            if(permissionsCheck(n,4)){
+                System.out.println("Error: You dont have permissions to see this file");
+                return;
+            }
             FileControlBlock temp = (FileControlBlock)n;
             FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
             nowDirectory.addChild(node);
