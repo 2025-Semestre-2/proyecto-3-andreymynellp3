@@ -340,6 +340,18 @@ public class FileSystem implements Serializable {
             if (n.isDirectory()) {recursiveChown((Directory)node,u);}
         }
     }
+    public void chmod(int permUser, int permGr, String filename){
+        User current = users.get(nowUser);
+        Node n = nowDirectory.findChild(filename);
+        if(n==null){
+            System.out.println("Error: the"+filename+" doesnt exist");
+        }
+        if(!current.username.equals("root") && n.owner!= current){
+            System.out.println("Error: only the owner or root are alloed to make changes");
+        }
+        n.permissions = permUser *10+permGr;
+        System.out.println("Updated permissions: "+filename+" -> "+n.permissions);
+    }
     
     /*
     =====================================================

@@ -115,7 +115,8 @@ public class Controller {
             case "chgrp": 
                 handleChgrp(partes);
                 break;
-            case "chmod": //< 
+            case "chmod":
+                handleChmod(partes);
                 break;
             case "openFile":
                 handleOpenFile(partes);
@@ -136,6 +137,20 @@ public class Controller {
             default:
                 System.out.println("Error: unrecognized command.");
         }
+    }
+    public void handleChmod(String[] partes){
+        if(partes.length !=2){
+            System.out.println("Error: unrecognized command, try: chmod <number> <filename>");
+            return;
+        } 
+        if(partes[0].length() !=2){
+            System.out.println("Error: invalid number, the length of the number must de 2");
+            return;
+        }
+        if(partes[1].charAt(0)<0 || partes[1].charAt(0)>7 || partes[1].charAt(1)<0 || partes[1].charAt(1)>7  ){
+            System.out.println("Error: the permits must be between 0 - 7");
+        }
+        fs.chmod(partes[1].charAt(0), partes[1].charAt(1), partes[2]);
     }
     public void handleChgrp(String[] partes){
         if(partes.length >4){
