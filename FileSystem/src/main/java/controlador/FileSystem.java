@@ -110,9 +110,11 @@ public class FileSystem implements Serializable {
         superblock.freeblocks = b;
         superblock.remainingblocks++;
     }
-    public boolean fileExist(String filename){
+    public Node fileExist(String filename){
         Node n = nowDirectory.findChild(filename);
-        return !(n ==null || n.isDirectory());
+        if (!(n ==null || n.isDirectory())){
+            return n;
+        }else return null;
         
     }
     
@@ -132,12 +134,13 @@ public class FileSystem implements Serializable {
     public void writeFile(String filename, String content) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception("  Error: File not found");
-        }
-        if(!permissionsCheck(n,2)){
-            throw new Exception("  Error: You dont have permissions to write this file");
+            System.out.println(" Error: File not found");
         }
         FileControlBlock fcb = (FileControlBlock) n;
+        if (fcb.open){
+            System.out.println(" Error: File is open");
+        }
+        fcb.open = true;
         //liberar
         Block actual = fcb.startblock;
         while (actual != null) {
@@ -150,7 +153,7 @@ public class FileSystem implements Serializable {
 
         Block prev = null;
         int offset = 0;
-        
+        liberarBlock(fcb.startblock);
         while(offset < bytes.length){
             Block nuevo = asigBloque();
             if (nuevo == null)
@@ -168,24 +171,30 @@ public class FileSystem implements Serializable {
             prev = nuevo;
         }
         fcb.size = bytes.length;
+        fcb.open = false;
         
     }
-    public String readFile(String filename) throws Exception {
+    public String readFile(String filename) {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception(" Error: File not found");
+            return " Error: File not found";
         }
         if(!permissionsCheck(n,4)){
-            throw new Exception(" Error: You dont have permissions to see this file");
+            return " Error: You dont have permissions to see this file";
         }
         FileControlBlock fcb = (FileControlBlock) n;
         
+        if (fcb.open){
+            return "Error: File is open";
+        }
+        fcb.open = true;
         Block actual = fcb.startblock;
         StringBuilder sb = new StringBuilder();
         while(actual != null){
             sb.append(new String(actual.data));
             actual = actual.next;
         }
+        fcb.open = false;
         return sb.toString().trim();
     }
     /*
@@ -308,14 +317,18 @@ public class FileSystem implements Serializable {
         return;
     }
     public Node nodeOnPath(Node n, String[] path){
-        if (path[0]== null || n == null){
+        if (path.length == 0 || n == null){
             return null;
         }
-        if(path[0].equals(n.nombre)){
-            return n;
-        }
         if (n.isDirectory()){
-            return nodeOnPath(((Directory)n).findChild(path[0]),Arrays.copyOfRange(path, 1, path.length));
+            Node temp = ((Directory)n).findChild(path[0]);
+            if(path.length ==1 && path[0].equals(temp.nombre)){
+                return temp;
+            }
+            if (temp != null && temp.isDirectory()){
+                return nodeOnPath(temp,Arrays.copyOfRange(path, 1, path.length));
+                
+            }
         }
         return null;
     }
@@ -329,18 +342,23 @@ public class FileSystem implements Serializable {
     
     public void viewFCB(String filename){
         Node n = nowDirectory.findChild(filename);
-        if (!n.isDirectory()){
+        if (n != null && !n.isDirectory()){
             if(!permissionsCheck(n,1)){
                 System.out.println(" Error: You dont have permissions to execute this file");
                 return;
             }
             FileControlBlock temp = (FileControlBlock)n;
             System.out.println(" Nombre: "+temp.nombre);
-            System.out.println(" Dueño: "+temp.owner.username);
-            System.out.println(" Fecha de creación: "+temp.createdAt);
+            System.out.println(" Duenio: "+temp.owner.username);
+            System.out.println(" Fecha de creacion: "+temp.createdAt);
             System.out.println((temp.open? " Abierto":" Cerrado"));
-            System.out.println(" Tamaño: "+temp.size);
-            System.out.println(" Ubicación: "+temp.path());
+            System.out.println(" Grupo: "+temp.group.name);
+            System.out.println(" Permisos: "+temp.permissions);
+            System.out.println(" Tamanio: "+temp.size);
+            System.out.println(" Ubicacion: "+temp.path());
+        }else{
+            System.out.println(" Error: You must type a valid file name");
+            return;
         }
     }
     
@@ -400,18 +418,21 @@ public class FileSystem implements Serializable {
         }
     }
     
-    public void ln(String name, String path){
+    public boolean ln(String name, String path){
         String[] partes = path.split("/");
         Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
         if(n!= null && !n.isDirectory()){
             if(!permissionsCheck(n,4)){
                 System.out.println(" Error: You dont have permissions to see this file");
-                return;
+                return false;
             }
             FileControlBlock temp = (FileControlBlock)n;
             FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
             nowDirectory.addChild(node);
+            superblock.numStructures++;
+            return true;
         }
+        return false;
     }
     public void chown(String username, String filename, boolean r){
         User u = users.get(username);
@@ -420,7 +441,11 @@ public class FileSystem implements Serializable {
             if(n != null){
                 n.owner = u;
                 if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
+            }else{
+                System.out.println(" Error: Not a valid file name");
             }
+        }else{
+            System.out.println(" Error: Invalid user");
         }
     }
     

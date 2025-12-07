@@ -4,8 +4,11 @@ package controlador;
 
 import java.util.Scanner;
 import controlador.FileSystem;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import modelo.Node;
 
 
 public class Controller {
@@ -29,6 +32,13 @@ public class Controller {
             }
             else if (partes.length ==3 && partes[0].equals("java") && partes[1].equals("myFileSystem")){
                 filename=partes[2];
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+                    fs = (FileSystem) ois.readObject();
+                    System.out.println("Disco duro leído");
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             }else{
                 System.out.println("try with:");
@@ -139,19 +149,22 @@ public class Controller {
         }
     }
     public void handleChmod(String[] partes){
-        if(partes.length !=2){
+        if(partes.length !=3){
             System.out.println(" Error: unrecognized command, try: chmod <number> <filename>");
             return;
         } 
-        if(partes[0].length() !=2){
+        if(partes[1].length() !=2){
             System.out.println(" Error: invalid number, the length of the number must de 2");
             return;
         }
-        if(partes[1].charAt(0)<0 || partes[1].charAt(0)>7 || partes[1].charAt(1)<0 || partes[1].charAt(1)>7  ){
+        int p1 = partes[1].charAt(0) - '0';
+        int p2 = partes[1].charAt(1) - '0';
+        if(p1<0 || p1>7 || p2<0 || p2>7  ){
             System.out.println(" Error: the permits must be between 0 - 7");
         }
-        fs.chmod(partes[1].charAt(0), partes[1].charAt(1), partes[2]);
+        fs.chmod(p1, p2, partes[2]);
     }
+    
     public void handleChgrp(String input){
         String [] partes = input.split(" ");
         if(partes.length >4){
@@ -224,11 +237,13 @@ public class Controller {
         fs.touch(partes[1]);
     }
     public void handleLn(String[] partes){
-        if(partes.length == 3){
+        if(partes.length != 3){
             System.out.println(" Error: unrecognized command, try: ln <filename> <path>");
             return;
         }
-        fs.ln(partes[1], partes[2]);
+        if(fs.ln(partes[1], partes[2])){
+            System.out.println(" Link created on directory");
+        }else System.out.println(" Error: Invalid link");
     }
     
     public void handleChown(String []partes){
@@ -367,8 +382,13 @@ public class Controller {
             System.out.println(" Error: unrecognized command, try: note <filename>");
             return;
         }
-        if(!fs.fileExist(partes[1])){
+        Node n = fs.fileExist(partes[1]);
+        if(n == null){
             System.out.println(" Error: file not found");
+            return;
+        }
+        if(!fs.permissionsCheck(n,2)){
+            System.out.println("  Error: You dont have permissions to write this file");
             return;
         }
         System.out.println("-------------------------------------");
