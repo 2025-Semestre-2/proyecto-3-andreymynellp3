@@ -153,7 +153,7 @@ public class FileSystem implements Serializable {
 
         Block prev = null;
         int offset = 0;
-        liberarBlock(fcb.startblock);
+        //liberarBlock(fcb.startblock);
         while(offset < bytes.length){
             Block nuevo = asigBloque();
             if (nuevo == null)
@@ -170,7 +170,7 @@ public class FileSystem implements Serializable {
 
             prev = nuevo;
         }
-        prev.next = null;
+        //prev.next = null;
         fcb.size = bytes.length;
         fcb.open = false;
         
@@ -333,7 +333,22 @@ public class FileSystem implements Serializable {
         }
         return null;
     }
-    
+    public boolean ln(String name, String path){
+        String[] partes = path.split("/");
+        Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
+        if(n!= null && !n.isDirectory()){
+            if(!permissionsCheck(n,4)){
+                System.out.println(" Error: You dont have permissions to see this file");
+                return false;
+            }
+            FileControlBlock temp = (FileControlBlock)n;
+            FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
+            nowDirectory.addChild(node);
+            superblock.numStructures++;
+            return true;
+        }
+        return false;
+    }
     public void infoFS(){
         System.out.println(" Nombre del FileSystem: myFs");
         System.out.println(" Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
@@ -419,22 +434,7 @@ public class FileSystem implements Serializable {
         }
     }
     
-    public boolean ln(String name, String path){
-        String[] partes = path.split("/");
-        Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
-        if(n!= null && !n.isDirectory()){
-            if(!permissionsCheck(n,4)){
-                System.out.println(" Error: You dont have permissions to see this file");
-                return false;
-            }
-            FileControlBlock temp = (FileControlBlock)n;
-            FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
-            nowDirectory.addChild(node);
-            superblock.numStructures++;
-            return true;
-        }
-        return false;
-    }
+    
     public void chown(String username, String filename, boolean r){
         User u = users.get(username);
         if(u != null){

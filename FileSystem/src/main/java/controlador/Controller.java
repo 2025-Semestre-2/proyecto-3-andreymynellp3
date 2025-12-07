@@ -4,6 +4,7 @@ package controlador;
 
 import java.util.Scanner;
 import controlador.FileSystem;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import modelo.Node;
 public class Controller {
     private FileSystem fs;
     private Scanner scanner;
-    
+    private boolean formatExecuted = false;
     public Controller(){
         scanner = new Scanner(System.in);
         this.fs = new FileSystem();
@@ -22,28 +23,45 @@ public class Controller {
     }
     public void ejecutar() throws Exception{
         String filename="";
-        System.out.print("execute terminal: ");
+        System.out.println("execute terminal: ");
+        System.out.println("java myFileSystem");
+        System.out.println("java myFileSystem <filename>");
         while(true){
             String input = scanner.nextLine().trim();
             String [] partes = input.split(" ");
+            
             if(partes.length ==2 && partes[0].equals("java") && partes[1].equals("myFileSystem")){
                 filename = "miDiscoDuro.fs";
+                System.out.println("Using the default file miDiscoDuro.fs");
                 break;
             }
             else if (partes.length ==3 && partes[0].equals("java") && partes[1].equals("myFileSystem")){
                 filename=partes[2];
-                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
+                File file = new File(filename);
+                
+                if(file.exists()){
+                    try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filename))) {
                     fs = (FileSystem) ois.readObject();
-                    System.out.println("Disco duro leído");
+                    formatExecuted = true;
+                    System.out.println("Hard disk created");
 
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 }
-                break;
+                System.out.print("The file does not exist. Do yo want to create it (y/n): ");
+                String ans = scanner.nextLine().trim().toLowerCase();
+                if (ans.equals("y")) {
+                    System.out.println("Hard disk created");
+                    break;
+                } else {
+                    System.out.println("Operation canceled, try again.");
+                    continue;
+                }
             }else{
-                System.out.println("try with:");
-                System.out.println("java myFileSystem");
-                System.out.println("java myFileSystem <filename>");
+                System.out.println("try again:");
+                
                 
             } 
         }
@@ -63,10 +81,15 @@ public class Controller {
     }
     public void handleCommand(String input,String filename ){
         String [] partes = input.split(" ");
+        if(!formatExecuted){
+            System.out.println("Error: You must run 'format' before any other command.");
+            return;
+        }
         switch(partes[0]){
             
             case "format":
                 handleFormat(input,filename);
+                formatExecuted = true;
                 break;
             case "useradd":
                 handleUserAdd(input);
@@ -357,9 +380,12 @@ public class Controller {
             System.out.println(E);
         }*/
     }
-    public String editorTxt() {
+    public String editorTxt(String content) {
         List<String> lines = new ArrayList<>();
-        
+        if(content != null && !content.isEmpty()){
+            System.out.println(content);
+            for(String l: content.split("\n")) lines.add(l);
+        } 
 
         while (true) {
             String line = scanner.nextLine();
@@ -391,10 +417,13 @@ public class Controller {
             System.out.println("  Error: You dont have permissions to write this file");
             return;
         }
+        String oldContent = fs.readFile(partes[1]);
+        
         System.out.println("-------------------------------------");
         System.out.println("filename:"+partes[1]+"          Exit = :q");
         System.out.println("-------------------------------------");
-        String content = editorTxt();
+        String content = editorTxt(oldContent);
+        
         System.out.print(" Save changes?(y/n)");
         String resp = scanner.nextLine().trim().toLowerCase();
         if(resp.equals("y")){
