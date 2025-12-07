@@ -92,7 +92,7 @@ public class FileSystem implements Serializable {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(Userfilename))) {
             oos.writeObject(this);
         } catch (Exception e) {
-            System.out.println("Error: trying to save the file " + e.getMessage());
+            System.out.println("  Error: trying to save the file " + e.getMessage());
         }
     }
     public Block asigBloque(){
@@ -132,10 +132,10 @@ public class FileSystem implements Serializable {
     public void writeFile(String filename, String content) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception("Error: File not found");
+            throw new Exception("  Error: File not found");
         }
-        if(permissionsCheck(n,2)){
-            throw new Exception("Error: You dont have permissions to write this file");
+        if(!permissionsCheck(n,2)){
+            throw new Exception("  Error: You dont have permissions to write this file");
         }
         FileControlBlock fcb = (FileControlBlock) n;
         //liberar
@@ -154,7 +154,7 @@ public class FileSystem implements Serializable {
         while(offset < bytes.length){
             Block nuevo = asigBloque();
             if (nuevo == null)
-                throw new Exception("Error: there is no space in the disc");
+                throw new Exception(" Error: there is no space in the disc");
 
             int length = Math.min(blockSize, bytes.length - offset);
             System.arraycopy(bytes, offset, nuevo.data, 0, length);
@@ -173,10 +173,10 @@ public class FileSystem implements Serializable {
     public String readFile(String filename) throws Exception {
         Node n = nowDirectory.findChild(filename);
         if(n ==null || n.isDirectory()){
-            throw new Exception("Error: File not found");
+            throw new Exception(" Error: File not found");
         }
-        if(permissionsCheck(n,4)){
-            throw new Exception("Error: You dont have permissions to see this file");
+        if(!permissionsCheck(n,4)){
+            throw new Exception(" Error: You dont have permissions to see this file");
         }
         FileControlBlock fcb = (FileControlBlock) n;
         
@@ -195,15 +195,15 @@ public class FileSystem implements Serializable {
     */
     public void mkdir(String name) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println("No hay espacio para nuevas estructuras.");
+            System.out.println(" No hay espacio para nuevas estructuras.");
             return;
         }
         if (nowDirectory == null) {
-            System.out.println("Directorio actual inválido.");
+            System.out.println(" Directorio actual inválido.");
             return;
             }
         if (nowDirectory.findChild(name) != null) {
-            System.out.println("Ya existe: " + name);
+            System.out.println(" Ya existe: " + name);
             return;
         }
         User u = users.get(nowUser);
@@ -211,7 +211,7 @@ public class FileSystem implements Serializable {
         Directory d = new Directory(name, nowDirectory,u,g,77);
         nowDirectory.addChild(d);
         superblock.numStructures++;
-        System.out.println("Directorio creado: " + name);
+        System.out.println(" Directorio creado: " + name);
         save();
         
     }
@@ -220,7 +220,7 @@ public class FileSystem implements Serializable {
         if(n != null){
             //ocupa permisos de escritura y ejecucion
             if(!permissionsCheck(n,3)){
-                System.out.println("Error: You dont have permissions to delete this file");
+                System.out.println(" Error: You dont have permissions to delete this file");
                 return;
             }
             if(r){
@@ -239,30 +239,34 @@ public class FileSystem implements Serializable {
     public void mv(String filename, String directory){
         Node file = nowDirectory.findChild(filename);
         Node dir = nowDirectory.findChild(directory);
-        if (file != null && dir != null){
-            if (dir.isDirectory()){
-                if(permissionsCheck(file,1)){
-                    System.out.println("Error: You dont have permissions to see this file");
-                    return;
-                }
-                ((Directory)dir).addChild(file);
-                nowDirectory.removeChild(file);
-                save();
-            }
+        if(!permissionsCheck(file,1)){
+            System.out.println(" Error: You dont have permissions to move this file");
+            return;
         }
+        if (dir == null && nowDirectory.padre != null) {
+            dir = nowDirectory.padre.findChild(directory);
+        }
+
+        if (file == null || dir == null) {
+            System.out.println(" Error: file or directory not found");
+            return;
+        }
+        ((Directory)dir).addChild(file);
+        nowDirectory.removeChild(file);
+        save();
     }
     
     public void touch(String filename) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println("Error: No hay espacio suficiente para una nueva estructura.");
+            System.out.println(" Error: No hay espacio suficiente para una nueva estructura.");
             return;
         }
         if (nowDirectory == null) {
-            System.out.println("Error: directorio actual inválido.");
+            System.out.println(" Error: directorio actual inválido.");
             return;
         }
         if(nowDirectory.findChild(filename)!=null){
-            System.out.println("Error: Ya existe un nodo con ese nombre: " + filename);
+            System.out.println(" Error: Ya existe un nodo con ese nombre: " + filename);
             return;
         }
         User u = users.get(nowUser);
@@ -272,7 +276,7 @@ public class FileSystem implements Serializable {
         nowDirectory.addChild(fcb);
         superblock.numStructures++;
         save();
-        System.out.println("Archivo creado: " + filename);
+        System.out.println(" Archivo creado: " + filename);
     }
     public void cd(String directorio){
         if(directorio.equals("..")){
@@ -291,7 +295,7 @@ public class FileSystem implements Serializable {
                 }
                 return;
             }
-            System.out.println("Error: the path does not exist");
+            System.out.println(" Error: the path does not exist");
             return;
         }
         Node n = nowDirectory.findChild(directorio); //Pendiente aplicar recursivo
@@ -300,7 +304,7 @@ public class FileSystem implements Serializable {
             nowDir = "/"+directorio;
             return;
         }
-        System.out.println("Error: the path does not exist");
+        System.out.println(" Error: the path does not exist");
         return;
     }
     public Node nodeOnPath(Node n, String[] path){
@@ -317,26 +321,26 @@ public class FileSystem implements Serializable {
     }
     
     public void infoFS(){
-        System.out.println("Nombre del FileSystem: myFs");
-        System.out.println("Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
-        System.out.println("Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
-        System.out.println("Disponible: "+ superblock.blocksize*superblock.remainingblocks+" MB");
+        System.out.println(" Nombre del FileSystem: myFs");
+        System.out.println(" Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
+        System.out.println(" Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
+        System.out.println(" Disponible: "+ superblock.blocksize*superblock.remainingblocks+" MB");
     }
     
     public void viewFCB(String filename){
         Node n = nowDirectory.findChild(filename);
         if (!n.isDirectory()){
-            if(permissionsCheck(n,1)){
-                System.out.println("Error: You dont have permissions to execute this file");
+            if(!permissionsCheck(n,1)){
+                System.out.println(" Error: You dont have permissions to execute this file");
                 return;
             }
             FileControlBlock temp = (FileControlBlock)n;
-            System.out.println("Nombre: "+temp.nombre);
-            System.out.println("Dueño: "+temp.owner.username);
-            System.out.println("Fecha de creación: "+temp.createdAt);
-            System.out.println((temp.open? "Abierto":"Cerrado"));
-            System.out.println("Tamaño: "+temp.size);
-            System.out.println("Ubicación: "+temp.path());
+            System.out.println(" Nombre: "+temp.nombre);
+            System.out.println(" Dueño: "+temp.owner.username);
+            System.out.println(" Fecha de creación: "+temp.createdAt);
+            System.out.println((temp.open? " Abierto":" Cerrado"));
+            System.out.println(" Tamaño: "+temp.size);
+            System.out.println(" Ubicación: "+temp.path());
         }
     }
     
@@ -377,8 +381,8 @@ public class FileSystem implements Serializable {
     public void openFile(String n){
         Node c = nowDirectory.findChild(n);
         if(c != null && !c.isDirectory()){
-            if(permissionsCheck(c,1)){
-                System.out.println("Error: You dont have permissions to see this file");
+            if(!permissionsCheck(c,1)){
+                System.out.println(" Error: You dont have permissions to see this file");
                 return;
             }
             ((FileControlBlock)c).open = true;
@@ -388,8 +392,8 @@ public class FileSystem implements Serializable {
     public void closeFile(String n){
         Node c = nowDirectory.findChild(n);
         if(c != null && !c.isDirectory()){
-            if(permissionsCheck(c,1)){
-                System.out.println("Error: You dont have permissions to see this file");
+            if(!permissionsCheck(c,1)){
+                System.out.println(" Error: You dont have permissions to see this file");
                 return;
             }
             ((FileControlBlock)c).open = false;
@@ -400,8 +404,8 @@ public class FileSystem implements Serializable {
         String[] partes = path.split("/");
         Node n = nodeOnPath(superblock.rootDirNode, Arrays.copyOfRange(partes, 1, partes.length));
         if(n!= null && !n.isDirectory()){
-            if(permissionsCheck(n,4)){
-                System.out.println("Error: You dont have permissions to see this file");
+            if(!permissionsCheck(n,4)){
+                System.out.println(" Error: You dont have permissions to see this file");
                 return;
             }
             FileControlBlock temp = (FileControlBlock)n;
@@ -430,14 +434,14 @@ public class FileSystem implements Serializable {
         User current = users.get(nowUser);
         Node n = nowDirectory.findChild(filename);
         if(n==null){
-            System.out.println("Error: the"+filename+" doesnt exist");
+            System.out.println(" Error: the"+filename+" doesnt exist");
         }
         if(!current.username.equals("root") && n.owner!= current){
-            System.out.println("Error: only the owner or root are alloed to make changes");
+            System.out.println(" Error: only the owner or root are alloed to make changes");
         }
         n.permissions = permUser *10+permGr;
         save();
-        System.out.println("Updated permissions: "+filename+" -> "+n.permissions);
+        System.out.println(" Updated permissions: "+filename+" -> "+n.permissions);
     }
     
     /*
@@ -447,11 +451,11 @@ public class FileSystem implements Serializable {
     */
     public void groupadd(String groupName) {
         if (!nowUser.equals("root")) {
-            System.out.println("Error: only root can create groups");
+            System.out.println(" Error: only root can create groups");
             return;
         }
         if (groups.containsKey(groupName)) {
-            System.out.println("Error: the group already exists");
+            System.out.println(" Error: the group already exists");
             return;
         }
         groups.put(groupName, new Group(groupName));
@@ -473,17 +477,17 @@ public class FileSystem implements Serializable {
     public void chgrp(String groupname,String recursive,String target){
         Group g = groups.get(groupname);
         if(g==null){
-            System.out.println("Error: the group doesnt exist");
+            System.out.println(" Error: the group doesnt exist");
         }
         Node t = nowDirectory.findChild(target);
         if(t==null){
-            System.out.println("Error: the"+target+" doesnt exist");
+            System.out.println(" Error: the"+target+" doesnt exist");
         }
         t.group=g;
         if(recursive.contains("-R")&& t.isDirectory()){
             chgrpRecurvise((Directory) t,g);
         }
-        System.out.println("Group changed: "+target+"->"+groupname);
+        System.out.println(" Group changed: "+target+"->"+groupname);
         
     }
     public void chgrpRecurvise(Directory d, Group g){
@@ -503,7 +507,7 @@ public class FileSystem implements Serializable {
     
     public void useradd(String username, String fullname, String pass1) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println("Error: No hay espacio para nuevas estructuras.");
+            System.out.println(" Error: No hay espacio para nuevas estructuras.");
             return;
         }
         User u = new User();
@@ -541,8 +545,8 @@ public class FileSystem implements Serializable {
     
     public String whoami(){
         User user = users.get(nowUser);
-        String msj = "username: "+user.username+"\n";
-        msj += "Full name: "+ user.fullname;
+        String msj = " username: "+user.username+"\n";
+        msj += " full name: "+ user.fullname;
         return msj;
     }
     
