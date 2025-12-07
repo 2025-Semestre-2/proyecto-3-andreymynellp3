@@ -407,9 +407,7 @@ public class Controller {
             System.out.println(" Error: passwords do not match.");
             return;
         }
-        fs.useradd(partes[1],nombre+" "+apellidos, password1);
-        
-        System.out.println(" User created successfully.");
+        if(fs.useradd(partes[1],nombre+" "+apellidos, password1)) System.out.println(" User created successfully.");
         
         
     }
