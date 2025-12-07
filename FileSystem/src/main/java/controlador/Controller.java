@@ -232,6 +232,10 @@ public class Controller {
     }
     
     public void handleChown(String []partes){
+        if (partes.length < 3){
+            System.out.println(" Error: unrecognized command, try: chown <username> <filename/directory>");
+            return;
+        }
         boolean r = "-r".equals(partes[1].toLowerCase());
         if((r && partes.length != 4)||(!r && partes.length != 3)){
             System.out.println(" Error: unrecognized command, try: chown <username> <filename/directory>");

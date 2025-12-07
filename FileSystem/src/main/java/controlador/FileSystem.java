@@ -427,7 +427,7 @@ public class FileSystem implements Serializable {
     public void recursiveChown(Directory n, User u){
         for(Node node : n.childs){
             node.owner = u;
-            if (n.isDirectory()) {recursiveChown((Directory)node,u);}
+            if (node.isDirectory()) {recursiveChown((Directory)node,u);}
         }
     }
     public void chmod(int permUser, int permGr, String filename){
@@ -505,10 +505,10 @@ public class FileSystem implements Serializable {
     =====================================================
     */ 
     
-    public void useradd(String username, String fullname, String pass1) {
+    public boolean useradd(String username, String fullname, String pass1) {
         if (superblock.numStructures>= superblock.maxStructures){
             System.out.println(" Error: No hay espacio para nuevas estructuras.");
-            return;
+            return false;
         }
         User u = new User();
         u.username = username;
@@ -525,6 +525,7 @@ public class FileSystem implements Serializable {
         u.home = home;
         superblock.numStructures++;
         save();
+        return true;
     }
     
     
