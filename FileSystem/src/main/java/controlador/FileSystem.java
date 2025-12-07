@@ -350,10 +350,22 @@ public class FileSystem implements Serializable {
         return false;
     }
     public void infoFS(){
-        System.out.println(" Nombre del FileSystem: myFs");
-        System.out.println(" Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
-        System.out.println(" Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
-        System.out.println(" Disponible: "+ superblock.blocksize*superblock.remainingblocks+" MB");
+        System.out.println(" FileSystem name: myFs");
+        System.out.println(" Size: "+ superblock.blocksize*superblock.numblocks+" MB");
+        System.out.println(" Space used: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
+        System.out.println(" Availability: "+ superblock.blocksize*superblock.remainingblocks+" MB");
+        System.out.println(" User: "+nowUser);
+        Group currentGroup = null;
+        User u = users.get(nowUser);
+        for (Group g : groups.values()) {
+            if (g.hasUser(u)) {
+                currentGroup = g;
+                break;
+            }
+        }
+
+        System.out.println(" Group: " + 
+            (currentGroup != null ? currentGroup.name : "No group"));
     }
     
     public void viewFCB(String filename){
@@ -364,14 +376,14 @@ public class FileSystem implements Serializable {
                 return;
             }
             FileControlBlock temp = (FileControlBlock)n;
-            System.out.println(" Nombre: "+temp.nombre);
-            System.out.println(" Duenio: "+temp.owner.username);
-            System.out.println(" Fecha de creacion: "+temp.createdAt);
-            System.out.println((temp.open? " Abierto":" Cerrado"));
-            System.out.println(" Grupo: "+temp.group.name);
-            System.out.println(" Permisos: "+temp.permissions);
-            System.out.println(" Tamanio: "+temp.size);
-            System.out.println(" Ubicacion: "+temp.path());
+            System.out.println(" Name: "+temp.nombre);
+            System.out.println(" Owner: "+temp.owner.username);
+            System.out.println(" Creation date: "+temp.createdAt);
+            System.out.println((temp.open? " Open":" Close"));
+            System.out.println(" Group: "+temp.group.name);
+            System.out.println(" Permissions: "+temp.permissions);
+            System.out.println(" Size: "+temp.size);
+            System.out.println(" Location: "+temp.path());
         }else{
             System.out.println(" Error: You must type a valid file name");
             return;
@@ -496,6 +508,13 @@ public class FileSystem implements Serializable {
         if (u == null || g == null ) {
             return false;
         }
+        if (u.username.equals("root")) {
+            System.out.println(" Error: cannot modify primary group of root.");
+            return false;
+        }
+        for (Group group : groups.values()) {
+            group.removeUser(u);
+        }
         g.addUser(u);
         return true;
         
@@ -569,6 +588,13 @@ public class FileSystem implements Serializable {
         }
         return false;   
     }
+    public void changeUserRoot (){ 
+        User user = users.get("root");
+        su("root");
+        nowDirectory = user.home;
+           
+    }
+    
     
     public String whoami(){
         User user = users.get(nowUser);
@@ -584,6 +610,7 @@ public class FileSystem implements Serializable {
     }
     public void su(String currentUser) {
         this.nowUser = currentUser;
+        
     }
     public boolean userExists (String username){
         return (users.containsKey(username));
