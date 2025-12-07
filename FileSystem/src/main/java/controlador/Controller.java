@@ -135,27 +135,27 @@ public class Controller {
                 break;
 
             default:
-                System.out.println("Error: unrecognized command.");
+                System.out.println(" Error: unrecognized command.");
         }
     }
     public void handleChmod(String[] partes){
         if(partes.length !=2){
-            System.out.println("Error: unrecognized command, try: chmod <number> <filename>");
+            System.out.println(" Error: unrecognized command, try: chmod <number> <filename>");
             return;
         } 
         if(partes[0].length() !=2){
-            System.out.println("Error: invalid number, the length of the number must de 2");
+            System.out.println(" Error: invalid number, the length of the number must de 2");
             return;
         }
         if(partes[1].charAt(0)<0 || partes[1].charAt(0)>7 || partes[1].charAt(1)<0 || partes[1].charAt(1)>7  ){
-            System.out.println("Error: the permits must be between 0 - 7");
+            System.out.println(" Error: the permits must be between 0 - 7");
         }
         fs.chmod(partes[1].charAt(0), partes[1].charAt(1), partes[2]);
     }
     public void handleChgrp(String input){
         String [] partes = input.split(" ");
         if(partes.length >4){
-            System.out.println("Error: unrecognized command, try: chgrp groupname filename <optional:-R> <filename or directory>");
+            System.out.println(" Error: unrecognized command, try: chgrp groupname filename <optional:-R> <filename or directory>");
             return;
         }
         if(input.contains("-R")){
@@ -167,7 +167,7 @@ public class Controller {
     }
     public void handleViewFCB(String[] partes){
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: viewFCB <filename>");
+            System.out.println(" Error: unrecognized command, try: viewFCB <filename>");
             return;
         }
         fs.viewFCB(partes[1]);
@@ -175,7 +175,7 @@ public class Controller {
     public void handleCat(String[] partes){
         try {
             if(partes.length !=2){
-                System.out.println("Error: unrecognized command, try: cat <filename>");
+                System.out.println(" Error: unrecognized command, try: cat <filename>");
                 return;
             }
             System.out.println(fs.readFile(partes[1]));
@@ -187,7 +187,7 @@ public class Controller {
     }
     public void handleGroupadd(String[] partes){
         if(partes.length !=2){
-            System.out.println("Error: unrecognized command, try: group <groupname>");
+            System.out.println(" Error: unrecognized command, try: group <groupname>");
             return;
         }
         fs.groupadd(partes[1]);
@@ -195,18 +195,18 @@ public class Controller {
     }
     public void handleUsermod(String[] partes){
         if(partes.length !=3){
-            System.out.println("Error: unrecognized command, try: usermod <groupname>");
+            System.out.println(" Error: unrecognized command, try: usermod <groupname>");
             return;
         }
         if(!fs.usermod(partes[1],partes[2])){
-            System.out.println("Error: the group or username does not exists");
+            System.out.println(" Error: the group or username does not exists");
             return;
         }
 
     }
     public void handleMkdir(String[] partes){
         if(partes.length <2){
-            System.out.println("Error: unrecognized command, try: mkdir <name>");
+            System.out.println(" Error: unrecognized command, try: mkdir <name>");
             return;
         }
         
@@ -217,7 +217,7 @@ public class Controller {
     }
     public void handleTouch(String[] partes){
         if(partes.length !=2){
-            System.out.println("Error: unrecognized command, try: touch <filename>");
+            System.out.println(" Error: unrecognized command, try: touch <filename>");
             return;
         }
         
@@ -225,7 +225,7 @@ public class Controller {
     }
     public void handleLn(String[] partes){
         if(partes.length == 3){
-            System.out.println("Error: unrecognized command, try: ln <filename> <path>");
+            System.out.println(" Error: unrecognized command, try: ln <filename> <path>");
             return;
         }
         fs.ln(partes[1], partes[2]);
@@ -234,7 +234,7 @@ public class Controller {
     public void handleChown(String []partes){
         boolean r = "-r".equals(partes[1].toLowerCase());
         if((r && partes.length != 4)||(!r && partes.length != 3)){
-            System.out.println("Error: unrecognized command, try: chown <username> <filename/directory>");
+            System.out.println(" Error: unrecognized command, try: chown <username> <filename/directory>");
             return;
         }
         fs.chown(r? partes[2]:partes[1], r? partes[3]:partes[2], r);   
@@ -242,7 +242,7 @@ public class Controller {
     public void handleCD(String input){
         String [] partes = input.split(" ");
         if(partes.length >2){
-            System.out.println("Error: unrecognized command, try: touch <filename>");
+            System.out.println(" Error: unrecognized command, try: touch <filename>");
             return;
         }
         
@@ -251,7 +251,7 @@ public class Controller {
     public void handleRM(String [] partes){
        boolean recursive = partes[1].toLowerCase().equals("-r");
        if((recursive && partes.length != 3)|| (!recursive && partes.length >2)){
-           System.out.println("Error: unrecognized command, try: rm <filename/directory> or rm -r <filename/directory>");
+           System.out.println(" Error: unrecognized command, try: rm <filename/directory> or rm -r <filename/directory>");
            return;
        }
        if (recursive){fs.rm(partes[2], true);
@@ -259,8 +259,8 @@ public class Controller {
     }
     
     public void handleMV(String [] partes){
-       if(partes.length >3){
-            System.out.println("Error: unrecognized command, try: mv <filename> <directory>");
+       if(partes.length !=3){
+            System.out.println(" Error: unrecognized command, try: mv <filename> <directory>");
             return;
         }
        fs.mv(partes[1], partes[2]);
@@ -268,7 +268,7 @@ public class Controller {
     
     public void handleWhereIs(String [] partes){
         if(partes.length >2){
-            System.out.println("Error: unrecognized command, try: whereis <filename>");
+            System.out.println(" Error: unrecognized command, try: whereis <filename>");
             return;
         }
         System.out.println(fs.whereIs(partes[1]));
@@ -276,13 +276,13 @@ public class Controller {
     
     public void handleOpenFile(String[] partes){
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: openFile <filename>");
+            System.out.println(" Error: unrecognized command, try: openFile <filename>");
             return;
         }fs.openFile(partes[1]);
     }
     public void handleCloseFile(String[] partes){
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: closeFile <filename>");
+            System.out.println(" Error: unrecognized command, try: closeFile <filename>");
             return;
         }fs.closeFile(partes[1]);
     }
@@ -290,30 +290,30 @@ public class Controller {
         try{
             String [] partes = input.split(" ");
             if(partes.length != 2){
-                System.out.println("Error: unrecognized command, try: format <number>");
+                System.out.println(" Error: unrecognized command, try: format <number>");
                 return;
             }
             Integer tamMB = validarInt(partes[1]);
             
             if(tamMB == null || tamMB <= 0) {
-                System.out.println("Error: the size must be a positive number");
+                System.out.println(" Error: the size must be a positive number");
                 return;
             }
             
-            System.out.print("type the block size: ");
+            System.out.print(" type the block size: ");
             Integer tamBlock = validarInt(scanner.nextLine());
             if(tamBlock == null || tamBlock <= 0) {
-                System.out.println("Error: the size must be a positive number");
+                System.out.println(" Error: the size must be a positive number");
                 return;
             }
             
-            System.out.print("password: ");
+            System.out.print(" password: ");
             String password1 = scanner.nextLine();
-            System.out.print("confirma password: ");
+            System.out.print(" confirm password: ");
             String password2 = scanner.nextLine();
             
             if(!password1.equals(password2)){
-                System.out.println("Error: passwords do not match.");
+                System.out.println(" Error: passwords do not match.");
                 return;
             }
             fs.format(tamMB,password2,tamBlock,filename);
@@ -360,18 +360,18 @@ public class Controller {
     public void handleNote(String input){
         String [] partes = input.split(" ");
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: note <filename>");
+            System.out.println(" Error: unrecognized command, try: note <filename>");
             return;
         }
         if(!fs.fileExist(partes[1])){
-            System.out.println("Erro: file not found");
+            System.out.println(" Error: file not found");
             return;
         }
         System.out.println("-------------------------------------");
         System.out.println("filename:"+partes[1]+"          Exit = :q");
         System.out.println("-------------------------------------");
         String content = editorTxt();
-        System.out.print("Save changes?(y/n)");
+        System.out.print(" Save changes?(y/n)");
         String resp = scanner.nextLine().trim().toLowerCase();
         if(resp.equals("y")){
             try {
@@ -379,53 +379,53 @@ public class Controller {
             } catch (Exception ex) {
                 System.getLogger(Controller.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
             }
-            System.out.println("Fie saved"); 
-        }else{System.out.println("Dicarded changes");}
+            System.out.println(" File saved"); 
+        }else{System.out.println(" Dicarded changes");}
         
     }
 
     public void handleUserAdd(String input){
         String [] partes = input.split(" ");
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: useradd <username>");
+            System.out.println(" Error: unrecognized command, try: useradd <username>");
             return;
         }
         if(fs.userExists(partes[1])){
-            System.out.println("Error: the user already exists.");
+            System.out.println(" Error: the user already exists.");
             return;
         }
-        System.out.print("name: ");
+        System.out.print(" name: ");
         String nombre = scanner.nextLine();
-        System.out.print("last name: ");
+        System.out.print(" last name: ");
         String apellidos = scanner.nextLine();
-        System.out.print("password: ");
+        System.out.print(" password: ");
         String password1 = scanner.nextLine();
-        System.out.print("confirma password: ");
+        System.out.print(" confirma password: ");
         String password2 = scanner.nextLine();
         
         if(!password1.equals(password2)){
-            System.out.println("Error: passwords do not match.");
+            System.out.println(" Error: passwords do not match.");
             return;
         }
         fs.useradd(partes[1],nombre+" "+apellidos, password1);
         
-        System.out.println("User created successfully.");
+        System.out.println(" User created successfully.");
         
         
     }
     public void handlePasswd(String input){
         String [] partes = input.split(" ");
         if(partes.length != 2){
-            System.out.println("Error: unrecognized command, try: passwd <username>");
+            System.out.println(" Error: unrecognized command, try: passwd <username>");
             return;
         }
-        System.out.print("password: ");
+        System.out.print(" password: ");
         String password1 = scanner.nextLine();
-        System.out.print("confirma password: ");
+        System.out.print(" confirma password: ");
         String password2 = scanner.nextLine();
         
         if(!password1.equals(password2)){
-            System.out.println("Error: passwords do not match.");
+            System.out.println(" Error: passwords do not match.");
             return;
         }
         fs.passwd(partes[1], password2);
@@ -434,16 +434,16 @@ public class Controller {
     public void handleSu(String input){
         String [] partes = input.split(" ");
         if(partes.length >2){
-            System.out.println("Error: unrecognized command, try: su <username>");
+            System.out.println(" Error: unrecognized command, try: su <username>");
             return;
         }
         if(partes.length == 1){
             fs.su("root");
         }else{
-            System.out.print("password: ");
+            System.out.print(" password: ");
             String password1 = scanner.nextLine();
             if(!fs.changeUser(partes[1],password1)){
-                System.out.println("Error: passwords do not match.");
+                System.out.println(" Error: passwords do not match.");
                 return;
             }
             
