@@ -9,7 +9,7 @@ public class SuperBlock implements Serializable{
     public Integer numblocks;
     public Integer remainingblocks;
     public Integer maxStructures;
-    public Integer numStructures = 0;
+    public Integer numStructures = 5;
     
     public Block freeblocks;
     public Directory rootDirNode;

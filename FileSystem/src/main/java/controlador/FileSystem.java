@@ -35,9 +35,10 @@ public class FileSystem implements Serializable {
     
     public void format(int disk, String rootPassword, int blockSize, String filename) throws Exception {
         this.Userfilename = filename;
-        int diskSize = (int) (disk*0.95);
+        int temp = disk- 5;
+        int diskSize = temp - temp/4;
         int numBlocks = diskSize / blockSize;
-        if (numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
+        if (disk<5 && numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
 
         superblock = new SuperBlock();
         superblock.blocksize = blockSize;
@@ -68,12 +69,12 @@ public class FileSystem implements Serializable {
         rootGroup.addUser(rootUser);
         // nodo raiz
         Directory root = new Directory("/", null,rootUser,rootGroup,77);
-        nowDirectory = root;
         superblock.rootDirNode = root;
 
         Directory rootHome = new Directory("root", root,rootUser,rootGroup,77);
         root.addChild(rootHome);
         rootUser.home = rootHome;
+        nowDirectory = rootHome;
         users.put(rootUser.username, rootUser);
 
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filename))) {
@@ -117,8 +118,8 @@ public class FileSystem implements Serializable {
     
     public boolean permissionsCheck(Node file, int type){
         
-        Integer userperm = Integer.valueOf(file.permissions.toString().charAt(0));
-        Integer groupperm = Integer.valueOf(file.permissions.toString().charAt(1));
+        Integer userperm = file.permissions/10;
+        Integer groupperm = file.permissions%10;
         User u = users.get(nowUser);
    
         if(file.owner ==u){
@@ -349,7 +350,7 @@ public class FileSystem implements Serializable {
     public void recursiveLs(Directory n, String level){
         for(Node node : n.childs){
             System.out.println(level+"> "+(node.isDirectory() ? "d " : "f ") + node.nombre);
-            if (n.isDirectory()) {recursiveLs((Directory)node,level+"  ");}
+            if (node.isDirectory()) {recursiveLs((Directory)node,level+"  ");}
         }
     }
     public String pwd() { return nowDirectory.path(); }

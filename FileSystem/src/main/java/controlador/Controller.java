@@ -89,7 +89,7 @@ public class Controller {
                 handleMV(partes);
                 break;
             case "ls": 
-                fs.ls(partes.length == 3);
+                fs.ls(partes.length == 2);
                 break;
             case "clear":
                 clearScreen();
