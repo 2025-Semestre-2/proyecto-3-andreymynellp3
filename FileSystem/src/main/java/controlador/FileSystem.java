@@ -170,6 +170,7 @@ public class FileSystem implements Serializable {
 
             prev = nuevo;
         }
+        prev.next = null;
         fcb.size = bytes.length;
         fcb.open = false;
         
