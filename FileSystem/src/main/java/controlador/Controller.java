@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import modelo.Node;
 
@@ -386,7 +385,7 @@ public class Controller {
         List<String> lines = new ArrayList<>();
         if(content != null && !content.isEmpty()){
             System.out.println(content);
-            lines.addAll(Arrays.asList(content.split("\n")));
+            for(String l: content.split("\n")) lines.add(l);
         } 
 
         while (true) {
