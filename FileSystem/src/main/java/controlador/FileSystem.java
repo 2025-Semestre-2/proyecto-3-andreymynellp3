@@ -153,12 +153,13 @@ public class FileSystem implements Serializable {
 
         Block prev = null;
         int offset = 0;
-        //liberarBlock(fcb.startblock);
+        //if(fcb.startblock != null)liberarBlock(fcb.startblock);
         while(offset < bytes.length){
             Block nuevo = asigBloque();
             if (nuevo == null)
                 throw new Exception(" Error: there is no space in the disc");
 
+            Arrays.fill(nuevo.data, (byte)0);
             int length = Math.min(blockSize, bytes.length - offset);
             System.arraycopy(bytes, offset, nuevo.data, 0, length);
             offset += length;
@@ -167,13 +168,12 @@ public class FileSystem implements Serializable {
                 fcb.startblock = nuevo;
             else
                 prev.next = nuevo;
-
+            //nuevo.next = null;
             prev = nuevo;
         }
-        //prev.next = null;
         fcb.size = bytes.length;
         fcb.open = false;
-        
+        save();
     }
     public String readFile(String filename) {
         Node n = nowDirectory.findChild(filename);
@@ -234,18 +234,49 @@ public class FileSystem implements Serializable {
                 return;
             }
             if(r){
-                nowDirectory.removeChild(n);
+                rmRecursive(n);
             }
             else{
-                if (n.isDirectory()){
-                    nowDirectory.childs.addAll(((Directory)n).childs);
+                if (!n.isDirectory()){
+                    FileControlBlock temp = (FileControlBlock)n;
+                    Block actual = temp.startblock;
+                    while (actual != null) {
+                        Block next = actual.next;
+                        liberarBlock(actual);
+                        actual = next;
+                    }
+                    nowDirectory.removeChild(n);
+                }else{
+                    Directory temp = (Directory)n;
+                    nowDirectory.childs.addAll(temp.childs);
+                    nowDirectory.removeChild(n);
                 }
-                nowDirectory.removeChild(n);
                 save();
+            }
+            superblock.numStructures--;
+        }save();
+    }
+    
+    public void rmRecursive(Node n){
+        
+        if(!n.isDirectory()){
+            FileControlBlock temp = (FileControlBlock)n;
+            Block actual = temp.startblock;
+            while (actual != null) {
+                Block next = actual.next;
+                liberarBlock(actual);
+                actual = next;
+            }
+            superblock.numStructures--;
+        }else{
+            Directory temp = (Directory)n;
+            for(Node c: temp.childs){
+                rmRecursive(c);
             }
             superblock.numStructures--;
         }
     }
+    
     public void mv(String filename, String directory){
         Node file = nowDirectory.findChild(filename);
         Node dir = nowDirectory.findChild(directory);
@@ -282,7 +313,7 @@ public class FileSystem implements Serializable {
         User u = users.get(nowUser);
         Group g = groups.get(u.username);
         
-        FileControlBlock fcb = new FileControlBlock(filename,u,g,77,null, nowDirectory); //Implementar poner nodo libre
+        FileControlBlock fcb = new FileControlBlock(filename,u,g,77,asigBloque(), nowDirectory); //Implementar poner nodo libre
         nowDirectory.addChild(fcb);
         superblock.numStructures++;
         save();
@@ -345,15 +376,16 @@ public class FileSystem implements Serializable {
             FileControlBlock node = new FileControlBlock(name, temp.owner,temp.group, temp.permissions, temp.startblock, nowDirectory);
             nowDirectory.addChild(node);
             superblock.numStructures++;
+            save();
             return true;
         }
         return false;
     }
     public void infoFS(){
         System.out.println(" Nombre del FileSystem: myFs");
-        System.out.println(" Tamaño: "+ superblock.blocksize*superblock.numblocks+" MB");
-        System.out.println(" Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
-        System.out.println(" Disponible: "+ superblock.blocksize*superblock.remainingblocks+" MB");
+        System.out.println(" Tamaño: "+ superblock.blocksize*superblock.numblocks+" B");
+        System.out.println(" Utilizado: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" B");
+        System.out.println(" Disponible: "+ superblock.blocksize*superblock.remainingblocks+" B");
     }
     
     public void viewFCB(String filename){
@@ -421,6 +453,7 @@ public class FileSystem implements Serializable {
             }
             ((FileControlBlock)c).open = true;
         }
+        save();
     }
     
     public void closeFile(String n){
@@ -432,6 +465,7 @@ public class FileSystem implements Serializable {
             }
             ((FileControlBlock)c).open = false;
         }
+        save();
     }
     
     
@@ -448,6 +482,7 @@ public class FileSystem implements Serializable {
         }else{
             System.out.println(" Error: Invalid user");
         }
+        save();
     }
     
     public void recursiveChown(Directory n, User u){
@@ -497,6 +532,7 @@ public class FileSystem implements Serializable {
             return false;
         }
         g.addUser(u);
+        save();
         return true;
         
     }
@@ -513,6 +549,7 @@ public class FileSystem implements Serializable {
         if(recursive.contains("-R")&& t.isDirectory()){
             chgrpRecurvise((Directory) t,g);
         }
+        save();
         System.out.println(" Group changed: "+target+"->"+groupname);
         
     }
@@ -581,6 +618,7 @@ public class FileSystem implements Serializable {
         User user = users.get(username);
         user.password = password;
         users.replace(username, user);
+        save();
     }
     public void su(String currentUser) {
         this.nowUser = currentUser;

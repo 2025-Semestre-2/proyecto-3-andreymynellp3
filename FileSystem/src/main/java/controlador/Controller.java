@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import modelo.Node;
 
@@ -81,94 +82,95 @@ public class Controller {
     }
     public void handleCommand(String input,String filename ){
         String [] partes = input.split(" ");
-        if(!formatExecuted){
-            System.out.println("Error: You must run 'format' before any other command.");
-            return;
-        }
-        switch(partes[0]){
-            
-            case "format":
-                handleFormat(input,filename);
-                formatExecuted = true;
-                break;
-            case "useradd":
-                handleUserAdd(input);
-                break;
-            case "passwd":
-                handlePasswd(input);
-                break;
-            case "groupadd":
-                handleGroupadd(partes);
-                break;
-            case "usermod":
-                handleUsermod(partes);
-                break;
-            case "su":
-                handleSu(input);
-                break;
-            case "whoami":
-                System.out.println(fs.whoami());
-                break;
-            case "pwd":
-                System.out.println(fs.pwd());
-                break;
-            case "mkdir":
-                handleMkdir(partes);
-                break;
-            case "rm":
-                handleRM(partes);
-                break;
-            case "mv":
-                handleMV(partes);
-                break;
-            case "ls": 
-                fs.ls(partes.length == 2);
-                break;
-            case "clear":
-                clearScreen();
-                break;
-            case "cd":
-                handleCD(input);
-                break;
-            case "whereis":
-                handleWhereIs(partes);
-                break;
-            case "ln":
-                handleLn(partes);
-                break;
-            case "touch":
-                handleTouch(partes);
-                break;
-            case "cat":
-                handleCat(partes);
-                break;
-            case "chown":
-                handleChown(partes);
-                break;
-            case "chgrp": 
-                handleChgrp(input);
-                break;
-            case "chmod": //< 
-                handleChmod(partes);
-                break;
-            case "openFile":
-                handleOpenFile(partes);
-                break;
-            case "closeFile":
-                handleCloseFile(partes);
-                break; 
-            case "viewFCB": 
-                handleViewFCB(partes);
-                break;
-            case "infoFS": 
-                fs.infoFS();
-                break;
-            case "note":
-                handleNote(input);
-                break;
+        if("format".equals(partes[0])){
+            handleFormat(input,filename);
+            formatExecuted = true;
+        }else{
+            if(!formatExecuted){
+                System.out.println("Error: You must run 'format' before any other command.");
+                return;
+            }
+            switch(partes[0]){
 
-            default:
-                System.out.println(" Error: unrecognized command.");
+                case "useradd":
+                    handleUserAdd(input);
+                    break;
+                case "passwd":
+                    handlePasswd(input);
+                    break;
+                case "groupadd":
+                    handleGroupadd(partes);
+                    break;
+                case "usermod":
+                    handleUsermod(partes);
+                    break;
+                case "su":
+                    handleSu(input);
+                    break;
+                case "whoami":
+                    System.out.println(fs.whoami());
+                    break;
+                case "pwd":
+                    System.out.println(fs.pwd());
+                    break;
+                case "mkdir":
+                    handleMkdir(partes);
+                    break;
+                case "rm":
+                    handleRM(partes);
+                    break;
+                case "mv":
+                    handleMV(partes);
+                    break;
+                case "ls": 
+                    fs.ls(partes.length == 2);
+                    break;
+                case "clear":
+                    clearScreen();
+                    break;
+                case "cd":
+                    handleCD(input);
+                    break;
+                case "whereis":
+                    handleWhereIs(partes);
+                    break;
+                case "ln":
+                    handleLn(partes);
+                    break;
+                case "touch":
+                    handleTouch(partes);
+                    break;
+                case "cat":
+                    handleCat(partes);
+                    break;
+                case "chown":
+                    handleChown(partes);
+                    break;
+                case "chgrp": 
+                    handleChgrp(input);
+                    break;
+                case "chmod": //< 
+                    handleChmod(partes);
+                    break;
+                case "openFile":
+                    handleOpenFile(partes);
+                    break;
+                case "closeFile":
+                    handleCloseFile(partes);
+                    break; 
+                case "viewFCB": 
+                    handleViewFCB(partes);
+                    break;
+                case "infoFS": 
+                    fs.infoFS();
+                    break;
+                case "note":
+                    handleNote(input);
+                    break;
+
+                default:
+                    System.out.println(" Error: unrecognized command.");
+            }
         }
     }
     public void handleChmod(String[] partes){
@@ -384,7 +386,7 @@ public class Controller {
         List<String> lines = new ArrayList<>();
         if(content != null && !content.isEmpty()){
             System.out.println(content);
-            for(String l: content.split("\n")) lines.add(l);
+            lines.addAll(Arrays.asList(content.split("\n")));
         } 
 
         while (true) {
@@ -394,12 +396,7 @@ public class Controller {
             }
             lines.add(line);
         }
-
-        // Construir contenido final
-        StringBuilder finalTxt = new StringBuilder();
-        for (String l : lines) finalTxt.append(l).append("\n");
-
-        return finalTxt.toString();
+        return String.join("\n", lines);
     }
 
     public void handleNote(String input){
