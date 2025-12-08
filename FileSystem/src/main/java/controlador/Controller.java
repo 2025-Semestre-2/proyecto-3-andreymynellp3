@@ -148,7 +148,7 @@ public class Controller {
                 case "chgrp": 
                     handleChgrp(input);
                     break;
-                case "chmod": //< 
+                case "chmod":
                     handleChmod(partes);
                     break;
                 case "openFile":
@@ -195,10 +195,10 @@ public class Controller {
             System.out.println(" Error: unrecognized command, try: chgrp groupname filename <optional:-R> <filename or directory>");
             return;
         }
-        if(input.contains("-R")){
-            fs.chgrp(partes[1],partes[2],partes[3]);
+        if(input.contains("-R") || input.contains("-r")){
+            fs.chgrp(partes[2],partes[1],partes[3]);
         }else{
-            fs.chgrp(partes[1],"",partes[3]);
+            fs.chgrp(partes[1],"",partes[2]);
         }
         
     }
@@ -416,7 +416,7 @@ public class Controller {
         String oldContent = fs.readFile(partes[1]);
         
         System.out.println("-------------------------------------");
-        System.out.println("filename:"+partes[1]+"          Exit = :q");
+        System.out.println("filename: "+partes[1]+"         Exit = :q");
         System.out.println("-------------------------------------");
         String content = editorTxt(oldContent);
         
@@ -466,9 +466,13 @@ public class Controller {
             System.out.println(" Error: unrecognized command, try: passwd <username>");
             return;
         }
+        if(!fs.userExists(partes[1])){
+            System.out.println(" Error: User not found");
+            return;
+        }
         System.out.print(" password: ");
         String password1 = scanner.nextLine();
-        System.out.print(" confirma password: ");
+        System.out.print(" confirm password: ");
         String password2 = scanner.nextLine();
         
         if(!password1.equals(password2)){
@@ -490,7 +494,7 @@ public class Controller {
             System.out.print(" password: ");
             String password1 = scanner.nextLine();
             if(!fs.changeUser(partes[1],password1)){
-                System.out.println(" Error: passwords do not match.");
+                System.out.println(" Error: User or passwords do not match.");
                 return;
             }
             

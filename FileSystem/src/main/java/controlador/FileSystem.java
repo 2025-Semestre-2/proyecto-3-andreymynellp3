@@ -39,7 +39,7 @@ public class FileSystem implements Serializable {
         int temp = disk- 5;
         int diskSize = temp - temp/4;
         int numBlocks = diskSize / blockSize;
-        if (disk<5 && numBlocks <= 0) throw new Exception("El tamaño del disco es demasiado pequeño para los bloques definidos.");
+        if (disk<5 && numBlocks <= 0) throw new Exception("The disk defined is too small for create the defined blocks");
 
         superblock = new SuperBlock();
         superblock.blocksize = blockSize;
@@ -178,7 +178,7 @@ public class FileSystem implements Serializable {
         //prev.next = null;
         fcb.size = bytes.length;
         fcb.open = false;
-        
+        save();
     }
     public String readFile(String filename) {
         Node n = nowDirectory.findChild(filename);
@@ -190,6 +190,9 @@ public class FileSystem implements Serializable {
         }
         if (n instanceof Enlace) {
             n = ((Enlace)n).objetivo;
+            if(n.padre == null){
+                return " Error: The file linked to this archive is deleted";
+            }
         }
         FileControlBlock fcb = (FileControlBlock) n;
         
@@ -214,15 +217,15 @@ public class FileSystem implements Serializable {
     */
     public void mkdir(String name) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println(" No hay espacio para nuevas estructuras.");
+            System.out.println(" Error: Unsufficient space for new structures");
             return;
         }
         if (nowDirectory == null) {
-            System.out.println(" Directorio actual inválido.");
+            System.out.println(" Invalid now directory.");
             return;
             }
         if (nowDirectory.findChild(name) != null) {
-            System.out.println(" Ya existe: " + name);
+            System.out.println(" Already exist: " + name);
             return;
         }
         User u = users.get(nowUser);
@@ -230,7 +233,7 @@ public class FileSystem implements Serializable {
         Directory d = new Directory(name, nowDirectory,u,g,77);
         nowDirectory.addChild(d);
         superblock.numStructures++;
-        System.out.println(" Directorio creado: " + name);
+        System.out.println(" Directory created: " + name);
         save();
         
     }
@@ -261,6 +264,7 @@ public class FileSystem implements Serializable {
                     
                 }
             }
+            n.padre = null;
             nowDirectory.removeChild(n);
             superblock.numStructures--;
             save();
@@ -294,30 +298,32 @@ public class FileSystem implements Serializable {
             System.out.println(" Error: You dont have permissions to move this file");
             return;
         }
-        if (dir == null && nowDirectory.padre != null) {
-            dir = nowDirectory.padre.findChild(directory);
-        }
 
-        if (file == null || dir == null) {
+        if (file == null) {
             System.out.println(" Error: file or directory not found");
             return;
         }
+        if (dir == null) {
+            file.nombre = directory;
+            return;
+        }
         ((Directory)dir).addChild(file);
+        file.padre = ((Directory)dir);
         nowDirectory.removeChild(file);
         save();
     }
     
     public void touch(String filename) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println(" Error: No hay espacio suficiente para una nueva estructura.");
+            System.out.println(" Error: Unsufficient space for new structures");
             return;
         }
         if (nowDirectory == null) {
-            System.out.println(" Error: directorio actual inválido.");
+            System.out.println(" Error: Invalid now directory.");
             return;
         }
         if(nowDirectory.findChild(filename)!=null){
-            System.out.println(" Error: Ya existe un nodo con ese nombre: " + filename);
+            System.out.println(" Error: This file already exist in this Directory: " + filename);
             return;
         }
         User u = users.get(nowUser);
@@ -327,7 +333,7 @@ public class FileSystem implements Serializable {
         nowDirectory.addChild(fcb);
         superblock.numStructures++;
         save();
-        System.out.println(" Archivo creado: " + filename);
+        System.out.println(" File created: " + filename);
     }
     public void cd(String directorio){
         if(directorio.equals("..")){
@@ -385,15 +391,16 @@ public class FileSystem implements Serializable {
             Enlace link = new Enlace(name, nowDirectory, (FileControlBlock) n);
             nowDirectory.addChild(link);
             superblock.numStructures++;
+            save();
             return true;
         }
         return false;
     }
     public void infoFS(){
         System.out.println(" FileSystem name: myFs");
-        System.out.println(" Size: "+ superblock.blocksize*superblock.numblocks+" MB");
-        System.out.println(" Space used: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" MB");
-        System.out.println(" Availability: "+ superblock.blocksize*superblock.remainingblocks+" MB");
+        System.out.println(" Size: "+ superblock.blocksize*superblock.numblocks+" bytes");
+        System.out.println(" Space used: "+ (superblock.blocksize*superblock.numblocks - superblock.blocksize*superblock.remainingblocks)+" bytes");
+        System.out.println(" Availability: "+ superblock.blocksize*superblock.remainingblocks+" bytes");
         System.out.println(" User: "+nowUser);
         Group currentGroup = null;
         User u = users.get(nowUser);
@@ -410,20 +417,19 @@ public class FileSystem implements Serializable {
     
     public void viewFCB(String filename){
         Node n = nowDirectory.findChild(filename);
-        if (n != null && !n.isDirectory()){
+        if (n != null){
             if(!permissionsCheck(n,1)){
                 System.out.println(" Error: You dont have permissions to execute this file");
                 return;
             }
-            FileControlBlock temp = (FileControlBlock)n;
-            System.out.println(" Name: "+temp.nombre);
-            System.out.println(" Owner: "+temp.owner.username);
-            System.out.println(" Creation date: "+temp.createdAt);
-            System.out.println((temp.open? " Open":" Close"));
-            System.out.println(" Group: "+temp.group.name);
-            System.out.println(" Permissions: "+temp.permissions);
-            System.out.println(" Size: "+temp.size);
-            System.out.println(" Location: "+temp.path());
+            System.out.println(" Name: "+n.nombre);
+            System.out.println(" Owner: "+n.owner.username);
+            System.out.println(" Creation date: "+n.createdAt);
+            if (!n.isDirectory() && !n.isLink())System.out.println((((FileControlBlock)n).open? " Open":" Close"));
+            System.out.println(" Group: "+n.group.name);
+            System.out.println(" Permissions: "+n.permissions);
+            if (!n.isDirectory() && !n.isLink() )System.out.println(" Size: "+((FileControlBlock)n).size);
+            System.out.println(" Location: "+n.path());
         }else{
             System.out.println(" Error: You must type a valid file name");
             return;
@@ -433,7 +439,7 @@ public class FileSystem implements Serializable {
     public void ls(boolean r){
         System.out.println(nowDirectory.nombre);
         for(Node n : nowDirectory.childs){
-            System.out.println("> "+(n.isDirectory() ? "d " : "f ") + n.nombre);
+            System.out.println("> "+(n.isDirectory() ? "d " : (n.isLink()? "l ": "f ")) + n.nombre);
             if (r && n.isDirectory()){recursiveLs((Directory)n,"  ");}
         }
     }
@@ -472,6 +478,7 @@ public class FileSystem implements Serializable {
                 return;
             }
             ((FileControlBlock)c).open = true;
+            save();
         }
     }
     
@@ -483,6 +490,7 @@ public class FileSystem implements Serializable {
                 return;
             }
             ((FileControlBlock)c).open = false;
+            save();
         }
     }
     
@@ -494,6 +502,7 @@ public class FileSystem implements Serializable {
             if(n != null){
                 n.owner = u;
                 if (r && n.isDirectory()){recursiveChown((Directory)n,u);}
+                save();
             }else{
                 System.out.println(" Error: Not a valid file name");
             }
@@ -556,6 +565,7 @@ public class FileSystem implements Serializable {
             group.removeUser(u);
         }
         g.addUser(u);
+        save();
         return true;
         
     }
@@ -563,15 +573,18 @@ public class FileSystem implements Serializable {
         Group g = groups.get(groupname);
         if(g==null){
             System.out.println(" Error: the group doesnt exist");
+            return;
         }
         Node t = nowDirectory.findChild(target);
         if(t==null){
             System.out.println(" Error: the"+target+" doesnt exist");
+            return;
         }
         t.group=g;
         if(recursive.contains("-R")&& t.isDirectory()){
             chgrpRecurvise((Directory) t,g);
         }
+        save();
         System.out.println(" Group changed: "+target+"->"+groupname);
         
     }
@@ -592,7 +605,7 @@ public class FileSystem implements Serializable {
     
     public boolean useradd(String username, String fullname, String pass1) {
         if (superblock.numStructures>= superblock.maxStructures){
-            System.out.println(" Error: No hay espacio para nuevas estructuras.");
+            System.out.println(" Error: Unsufficient space for new structures");
             return false;
         }
         User u = new User();
@@ -645,8 +658,14 @@ public class FileSystem implements Serializable {
     
     public void passwd (String username, String password){      
         User user = users.get(username);
-        user.password = password;
-        users.replace(username, user);
+        if(user != null){
+            user.password = password;
+            users.replace(username, user);
+            save();
+            System.out.println(" Password changed successfully");
+            return;
+        }
+        System.out.println(" Error: User not found");
     }
     public void su(String currentUser) {
         this.nowUser = currentUser;
