@@ -22,7 +22,11 @@ public class Group implements Serializable {
             users.add(u);
         }
     }
+    public void removeUser(User u) {
+        users.removeIf(user -> user.username.equals(u.username));
+    }
 
+    
     public boolean hasUser(User u) {
         return users.contains(u);
     }

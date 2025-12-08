@@ -486,7 +486,7 @@ public class Controller {
             return;
         }
         if(partes.length == 1){
-            fs.su("root");
+            fs.changeUserRoot();
         }else{
             System.out.print(" password: ");
             String password1 = scanner.nextLine();
