@@ -19,4 +19,6 @@ public class FileControlBlock extends Node {
     public boolean isDirectory() {
         return false;
     }
+    @Override
+    public boolean isLink(){return false;}
 }

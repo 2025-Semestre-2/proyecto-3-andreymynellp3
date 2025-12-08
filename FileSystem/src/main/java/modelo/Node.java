@@ -19,6 +19,7 @@ public abstract class Node implements Serializable {
         this.permissions = permissions;
     }
     public abstract boolean isDirectory();
+    public abstract boolean isLink();
     public String path(){
         if (padre == null) {
             return (nombre == null || nombre.isEmpty()) ? "/" : nombre;

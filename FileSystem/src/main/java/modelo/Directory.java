@@ -14,6 +14,9 @@ public class Directory extends Node{
     public boolean isDirectory() { 
         return true;
     }
+    @Override
+    public boolean isLink(){return false;}
+    
     public void addChild(Node node){
         childs.add(node);
     }

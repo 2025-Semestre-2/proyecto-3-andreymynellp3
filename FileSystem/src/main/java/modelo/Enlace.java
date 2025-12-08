@@ -14,5 +14,7 @@ public class Enlace extends Node {
 
     @Override
     public boolean isDirectory() { return false; }
+    @Override
+    public boolean isLink(){return true;}
 }
 

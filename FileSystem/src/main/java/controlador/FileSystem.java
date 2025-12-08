@@ -188,7 +188,7 @@ public class FileSystem implements Serializable {
         if(!permissionsCheck(n,4)){
             return " Error: You dont have permissions to see this file";
         }
-        FileControlBlock fcb = (FileControlBlock) n;
+        FileControlBlock fcb = (FileControlBlock) (n.isLink()? ((Enlace)n).objetivo: n);
         
         if (fcb.open){
             return "Error: File is open";
@@ -240,18 +240,50 @@ public class FileSystem implements Serializable {
                 return;
             }
             if(r){
-                nowDirectory.removeChild(n);
+                rmRecursive(n);
             }
             else{
                 if (n.isDirectory()){
                     nowDirectory.childs.addAll(((Directory)n).childs);
+                }else{
+                    if(!n.isLink()){
+                        FileControlBlock fcb = (FileControlBlock) n;
+                        Block actual = fcb.startblock;
+                        while (actual != null) {
+                            Block next = actual.next;
+                            liberarBlock(actual);
+                            actual = next;
+                        }
+                    }
+                    
                 }
-                nowDirectory.removeChild(n);
-                save();
+            }
+            nowDirectory.removeChild(n);
+            superblock.numStructures--;
+            save();
+        }
+    }
+    
+    public void rmRecursive(Node n){
+        
+        if(!n.isDirectory()){
+            FileControlBlock temp = (FileControlBlock)n;
+            Block actual = temp.startblock;
+            while (actual != null) {
+                Block next = actual.next;
+                liberarBlock(actual);
+                actual = next;
+            }
+            superblock.numStructures--;
+        }else{
+            Directory temp = (Directory)n;
+            for(Node c: temp.childs){
+                rmRecursive(c);
             }
             superblock.numStructures--;
         }
-    }
+    } 
+    
     public void mv(String filename, String directory){
         Node file = nowDirectory.findChild(filename);
         Node dir = nowDirectory.findChild(directory);
