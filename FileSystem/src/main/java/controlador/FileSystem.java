@@ -188,6 +188,9 @@ public class FileSystem implements Serializable {
         if(!permissionsCheck(n,4)){
             return " Error: You dont have permissions to see this file";
         }
+        if (n instanceof Enlace) {
+            n = ((Enlace)n).objetivo;
+        }
         FileControlBlock fcb = (FileControlBlock) n;
         
         if (fcb.open){
