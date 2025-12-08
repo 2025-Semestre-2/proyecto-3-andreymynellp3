@@ -245,6 +245,10 @@ public class FileSystem implements Serializable {
                 System.out.println(" Error: You dont have permissions to delete this file");
                 return;
             }
+            if(((FileControlBlock)n).open==true){
+                System.out.println(" Error: Close the file first if you want to remove the file");
+                return;
+            }
             if(r){
                 rmRecursive(n);
             }
