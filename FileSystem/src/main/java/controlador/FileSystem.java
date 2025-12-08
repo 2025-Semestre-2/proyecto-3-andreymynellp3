@@ -665,7 +665,6 @@ public class FileSystem implements Serializable {
             System.out.println(" Password changed successfully");
             return;
         }
-        System.out.println(" Error: User not found");
     }
     public void su(String currentUser) {
         this.nowUser = currentUser;
